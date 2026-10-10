@@ -111,3 +111,26 @@ a:focus-visible{outline:3px solid var(--terra);outline-offset:2px}
 .guide-scroll:focus-visible{outline:3px solid var(--terra);outline-offset:3px}
 @keyframes scrollsway{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
 @media (max-width:760px){.scene-wrap{max-width:330px;margin:0 auto}.scene{max-width:240px;margin:0}.guide-scroll{left:72%;top:10%;width:28%}.guide-scroll-label{font-size:.75rem}}
+
+/* offering minigame */
+.offerings{position:absolute;left:18.5%;top:47%;width:13%;display:flex;flex-direction:column;gap:2%;z-index:2}
+.offering{display:block;width:100%;aspect-ratio:1;padding:3px;margin:0 0 4px;border:1.5px solid transparent;border-radius:50%;background:rgba(255,253,248,.75);cursor:pointer;transition:transform .2s,opacity .6s,border-color .2s}
+.offering svg{width:100%;height:100%;display:block}
+.offering:hover,.offering:focus-visible{border-color:var(--gold);transform:scale(1.08)}
+.offering:focus-visible{outline:3px solid var(--terra);outline-offset:2px}
+.offering.gone{opacity:0;pointer-events:none;visibility:hidden}
+.offering.back{animation:offerback .6s ease-out}
+.offer-fly{position:fixed;z-index:20;pointer-events:none;margin:0}
+.offer-fly svg{width:100%;height:100%;display:block}
+.offer-say{position:absolute;left:2%;top:2%;max-width:60%;margin:0;background:var(--card);border:1.5px solid var(--gold);border-radius:6px;padding:.2rem .5rem;font-size:.85rem;font-style:italic;opacity:0;transition:opacity .4s;pointer-events:none;z-index:3}
+.offer-say.show{opacity:1}
+.flame.flare{animation:flare 1.4s ease-out}
+.glow.flare{animation:glowflare 1.6s ease-out}
+.smoke-puff{transform-box:fill-box;transform-origin:center;animation:plume 3.2s ease-out forwards}
+@keyframes offerback{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1)}}
+@keyframes flare{0%{transform:scale(1)}25%{transform:scale(1.9,2.6)}60%{transform:scale(1.4,1.8)}100%{transform:scale(1)}}
+@keyframes glowflare{0%{opacity:1}25%{opacity:1;transform:scale(1.5)}100%{opacity:.8}}
+.glow{transform-box:fill-box;transform-origin:center}
+@keyframes plume{0%{opacity:0;transform:translate(0,0) scale(.5)}15%{opacity:.75}100%{opacity:0;transform:translate(var(--dx,0),-240px) scale(3.6)}}
+@media (prefers-reduced-motion:reduce){.smoke-puff{animation:none!important;opacity:.45}.offering{transition:opacity .4s!important}}
+@media (max-width:760px){.offerings{left:-14%;top:30%;width:15%}.offer-say{font-size:.75rem;max-width:75%}}

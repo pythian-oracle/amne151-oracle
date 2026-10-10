@@ -166,6 +166,18 @@ var CONFIG = {
         if (on) { if (init()) apply(); } else apply();
         return on;
       },
+      whoosh: function () {
+        if (!ctx || !on || document.hidden) return;
+        try {
+          var t = ctx.currentTime, n = Math.floor(ctx.sampleRate * 1.1), b = ctx.createBuffer(1, n, ctx.sampleRate), d = b.getChannelData(0);
+          for (var i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (Math.random() < 0.02 ? 1 : 0.35);
+          var src = ctx.createBufferSource(); src.buffer = b;
+          var f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 0.8;
+          f.frequency.setValueAtTime(400, t); f.frequency.exponentialRampToValueAtTime(1800, t + 0.35); f.frequency.exponentialRampToValueAtTime(700, t + 1.1);
+          var g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.18, t + 0.12); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.1);
+          src.connect(f); f.connect(g); g.connect(ctx.destination); src.start(t); src.stop(t + 1.15);
+        } catch (e) {}
+      },
       chime: function () {
         if (!ctx || !on || document.hidden) return;
         try { pluck(587.33, ctx.currentTime + 0.01, 0.22, 0.1); pluck(880, ctx.currentTime + 0.09, 0.14, -0.1); } catch (e) {}
@@ -205,7 +217,7 @@ var CONFIG = {
   skipBtn.addEventListener('click', finishTyping);
   $('scroll').addEventListener('click', function (e) { if (typingTimer && e.target !== skipBtn) finishTyping(); });
   document.addEventListener('keydown', function (e) {
-    if (typingTimer && (e.key === 'Enter' || e.key === 'Escape')) { e.preventDefault(); finishTyping(); }
+    if (typingTimer && (e.key === 'Enter' || e.key === 'Escape') && !(e.target && e.target.closest && e.target.closest('.offering'))) { e.preventDefault(); finishTyping(); }
   });
 
   /* ---------- progress ---------- */
@@ -450,6 +462,69 @@ var CONFIG = {
       content.querySelector('p').focus();
     });
   }
+
+  /* ---------- offering minigame (purely decorative; never touches the form) ---------- */
+  (function () {
+    var svg = $('pythia'), btns = document.querySelectorAll('.offering');
+    if (!svg || !btns.length) return;
+    var LINES = { myrtle: 'Myrtle, sweet to the gods.', lamb: 'A fine lamb. The god is pleased.', ox: 'An ox! A hecatomb begins with one.' };
+    var live = $('offerSay'), bubble = $('offerBubble'), sayT = null, NS = 'http://www.w3.org/2000/svg';
+    function flameXY() {
+      var r = svg.getBoundingClientRect();
+      return { x: r.left + r.width * 200 / 400, y: r.top + r.height * 318 / 420, s: r.width / 400 };
+    }
+    function retrigger(node, cls) { if (!node) return; node.classList.remove(cls); void node.getBoundingClientRect(); node.classList.add(cls); setTimeout(function () { node.classList.remove(cls); }, 1700); }
+    function smoke(count) {
+      var g = svg;
+      for (var i = 0; i < count; i++) {
+        var c = document.createElementNS(NS, 'circle');
+        c.setAttribute('cx', 192 + Math.random() * 16); c.setAttribute('cy', reduced ? 290 - i * 14 : 305);
+        c.setAttribute('r', 10 + Math.random() * 8); c.setAttribute('fill', i % 2 ? '#8C867A' : '#A8A296');
+        c.setAttribute('class', 'smoke-puff');
+        c.style.setProperty('--dx', (Math.random() * 50 - 25) + 'px');
+        c.style.animationDelay = (i * 0.18) + 's';
+        g.appendChild(c);
+        (function (c) { setTimeout(function () { if (c.parentNode) c.parentNode.removeChild(c); }, reduced ? 1200 : 4200); })(c);
+      }
+    }
+    function speak(kind) {
+      var line = LINES[kind] || '';
+      live.textContent = ''; setTimeout(function () { live.textContent = line; }, 50);
+      bubble.textContent = '\u201C' + line + '\u201D'; bubble.classList.add('show');
+      clearTimeout(sayT); sayT = setTimeout(function () { bubble.classList.remove('show'); }, 3200);
+    }
+    function burn() {
+      retrigger(svg.querySelector('.flame'), 'flare'); retrigger(svg.querySelector('.glow'), 'flare');
+      smoke(reduced ? 3 : 7); Music.whoosh();
+    }
+    function offer(btn) {
+      if (btn.classList.contains('gone')) return;
+      var kind = btn.getAttribute('data-offer');
+      var r = btn.getBoundingClientRect(), f = flameXY();
+      if (document.activeElement === btn) { var nxt = Array.prototype.filter.call(btns, function (b) { return b !== btn && !b.classList.contains('gone'); })[0]; if (nxt) nxt.focus(); }
+      btn.classList.add('gone');
+      speak(kind);
+      setTimeout(function () { btn.classList.remove('gone'); btn.classList.add('back'); setTimeout(function () { btn.classList.remove('back'); }, 700); }, reduced ? 2500 : 4000);
+      if (reduced || !Element.prototype.animate) { burn(); return; }
+      var fly = document.createElement('div'); fly.className = 'offer-fly'; fly.setAttribute('aria-hidden', 'true');
+      fly.innerHTML = btn.querySelector('svg').outerHTML;
+      fly.style.left = r.left + 'px'; fly.style.top = r.top + 'px'; fly.style.width = r.width + 'px'; fly.style.height = r.height + 'px';
+      document.body.appendChild(fly);
+      var dx = f.x - (r.left + r.width / 2), dy = f.y - (r.top + r.height / 2), lift = -Math.max(60, 90 * f.s * 2);
+      var frames = [];
+      for (var i = 0; i <= 10; i++) {
+        var t = i / 10, x = dx * t, y = dy * t + lift * 4 * t * (1 - t);
+        frames.push({ transform: 'translate(' + x + 'px,' + y + 'px) rotate(' + (t * 200) + 'deg) scale(' + (1 - 0.35 * t) + ')', offset: t * 0.6 });
+      }
+      frames.push({ transform: 'translate(' + dx + 'px,' + (dy - 6) + 'px) rotate(220deg) scale(.5)', filter: 'brightness(.35) sepia(1)', opacity: 0.8, offset: 0.8 });
+      frames.push({ transform: 'translate(' + dx + 'px,' + (dy - 14) + 'px) rotate(240deg) scale(.05)', filter: 'brightness(0)', opacity: 0, offset: 1 });
+      frames[0].filter = 'brightness(1) sepia(0)'; frames[0].opacity = 1;
+      var anim = fly.animate(frames, { duration: 1500, easing: 'linear' });
+      setTimeout(burn, 900);
+      anim.onfinish = function () { if (fly.parentNode) fly.parentNode.removeChild(fly); };
+    }
+    Array.prototype.forEach.call(btns, function (b) { b.addEventListener('click', function (e) { e.preventDefault(); offer(b); }); });
+  })();
 
   intro();
 })();
