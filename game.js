@@ -12,7 +12,7 @@ var CONFIG = {
     tutorial:     'entry.876568848',
     format:       'entry.1010395158',
     idea:         'entry.1443301633',
-    question:     'entry.QUESTION_ID_TBD'   // "What is your question?" (question-only path)
+    question:     'entry.398201136'   // form item "Question for your TA" (question-only path)
   },
   TYPE_SPEED_MS: 22,
   // Background lyre music (made in the browser, no audio files). Set to false to start muted.
