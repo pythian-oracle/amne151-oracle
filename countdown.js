@@ -1,7 +1,7 @@
 /* Deadline countdowns (computed from UTC instants, so correct in any timezone). */
 (function () {
   var D = [
-    { id: 'cdIdea', label: 'First project proposal idea', at: Date.UTC(2026, 9, 17, 5, 0) },       // Fri 16 Oct 2026, 10 p.m. PT
+    { id: 'cdIdea', label: 'First project proposal idea', at: Date.UTC(2026, 9, 21, 5, 0) },       // Tue 20 Oct 2026, 10 p.m. PT
     { id: 'cdProposal', label: 'Project proposal assignment', at: Date.UTC(2026, 9, 24, 5, 0) } // Fri 23 Oct 2026, 10 p.m. PT
   ];
   function pl(n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); }
