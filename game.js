@@ -506,26 +506,31 @@ var CONFIG = {
     var svg = $('pythia'), btns = document.querySelectorAll('.offering');
     if (!svg || !btns.length) return;
     // Verbatim quotes from public-domain translations of syllabus works (Butler 1898/1900; Evelyn-White 1914, Project Gutenberg).
-    var IL = 'Iliad 1 (trans. Butler)', OD9 = 'Odyssey 9 (trans. Butler)', OD11 = 'Odyssey 11 (trans. Butler)';
+    // Full Chicago (17th ed.) first-note citations; see the bibliography in info.html.
+    var EW = ', in <em>Hesiod, the Homeric Hymns, and Homerica</em>, trans. Hugh G. Evelyn-White (London: William Heinemann, 1914), ';
+    var GB348 = ', https://www.gutenberg.org/ebooks/348.';
+    function il(bk) { return 'Homer, <em>The Iliad</em>, trans. Samuel Butler (London: Longmans, Green, 1898), ' + bk + ', https://www.gutenberg.org/ebooks/2199.'; }
+    function od(bk) { return 'Homer, <em>The Odyssey</em>, trans. Samuel Butler (London: Longmans, Green, 1900), ' + bk + ', https://www.gutenberg.org/ebooks/1727.'; }
+    function hy(god, ll) { return '<em>Homeric Hymn to ' + god + '</em>' + EW + ll + GB348; }
     var LINES = {
       myrtle: [
-        { q: '…sacrifice to the deathless gods purely and cleanly, and burn rich meats also, and at other times propitiate them with libations and incense', c: 'Hesiod, Works and Days 320\u2013341 (trans. Evelyn-White)' },
-        { q: '…let all the people build me a great temple and an altar below it', c: 'Homeric Hymn to Demeter 256\u2013274 (trans. Evelyn-White)' },
-        { q: '…pour an offering to the blessed gods who dwell on Olympus.', c: 'Homeric Hymn to Pythian Apollo 474\u2013501 (trans. Evelyn-White)' },
-        { q: 'If I have ever decked your temple with garlands, or burned your thigh-bones in fat of bulls or goats, grant my prayer', c: IL }
+        { q: '…sacrifice to the deathless gods purely and cleanly, and burn rich meats also, and at other times propitiate them with libations and incense', c: 'Hesiod, <em>Works and Days</em>' + EW + '336\u201338' + GB348 },
+        { q: '…let all the people build me a great temple and an altar below it', c: hy('Demeter', '270\u201371') },
+        { q: '…pour an offering to the blessed gods who dwell on Olympus.', c: hy('Pythian Apollo', '498') },
+        { q: 'If I have ever decked your temple with garlands, or burned your thigh-bones in fat of bulls or goats, grant my prayer', c: il('1.39\u201341') }
       ],
       lamb: [
-        { q: '…whether he will accept the savour of lambs and goats without blemish', c: IL },
-        { q: '…hymning him and chaunting the joyous paean, and the god took pleasure in their voices', c: IL },
-        { q: '…I sacrificed it on the sea shore, and burned its thigh bones to Jove, who is the lord of all.', c: OD9 },
-        { q: '…Teiresias should have a black sheep to himself, the best in all my flocks.', c: OD11 },
-        { q: 'Thus did he pray, and Apollo heard his prayer.', c: IL }
+        { q: '…whether he will accept the savour of lambs and goats without blemish', c: il('1.66\u201367') },
+        { q: '…hymning him and chaunting the joyous paean, and the god took pleasure in their voices', c: il('1.473\u201374') },
+        { q: '…I sacrificed it on the sea shore, and burned its thigh bones to Jove, who is the lord of all.', c: od('9.551\u201353') },
+        { q: '…Teiresias should have a black sheep to himself, the best in all my flocks.', c: od('11.32\u201333') },
+        { q: 'Thus did he pray, and Apollo heard his prayer.', c: il('1.43') }
       ],
       ox: [
-        { q: '…the smoke with the savour of their sacrifice rose curling up towards heaven.', c: IL },
-        { q: '…hither they will always bring perfect hecatombs', c: 'Homeric Hymn to Pythian Apollo 244\u2013253 (trans. Evelyn-White)' },
-        { q: '…divided them into twelve portions distributed by lot, making each portion wholly honourable.', c: 'Homeric Hymn to Hermes 115\u2013137 (trans. Evelyn-White)' },
-        { q: '…so shall mortals ever sacrifice perfect hecatombs to you at your feasts each three years.', c: 'Homeric Hymn to Dionysus 10\u201312 (trans. Evelyn-White)' }
+        { q: '…the smoke with the savour of their sacrifice rose curling up towards heaven.', c: il('1.317') },
+        { q: '…hither they will always bring perfect hecatombs', c: hy('Pythian Apollo', '248\u201349') },
+        { q: '…divided them into twelve portions distributed by lot, making each portion wholly honourable.', c: hy('Hermes', '128\u201329') },
+        { q: '…so shall mortals ever sacrifice perfect hecatombs to you at your feasts each three years.', c: hy('Dionysus', '11\u201312') }
       ]
     };
     var bag = {}, last = {};
@@ -548,11 +553,11 @@ var CONFIG = {
     function retrigger(node, cls) { if (!node) return; node.classList.remove(cls); void node.getBoundingClientRect(); node.classList.add(cls); setTimeout(function () { node.classList.remove(cls); }, 1700); }
     function speak(kind) {
       var l = nextLine(kind);
-      live.textContent = ''; setTimeout(function () { live.textContent = '\u201C' + l.q + '\u201D \u2014 ' + l.c; }, 50);
+      live.textContent = ''; setTimeout(function () { live.textContent = '\u201C' + l.q + '\u201D ' + l.c.replace(/<[^>]+>/g, ''); }, 50);
       bubble.textContent = '\u201C' + l.q + '\u201D';
-      var c = document.createElement('cite'); c.textContent = '\u2014 ' + l.c; bubble.appendChild(c);
+      var c = document.createElement('cite'); c.innerHTML = l.c; bubble.appendChild(c);   // l.c is a trusted constant above
       bubble.classList.add('show');
-      clearTimeout(sayT); sayT = setTimeout(function () { bubble.classList.remove('show'); }, 6000);
+      clearTimeout(sayT); sayT = setTimeout(function () { bubble.classList.remove('show'); }, 9000);
     }
     function loop(dur, step, done) {
       var t0 = now();

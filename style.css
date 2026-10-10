@@ -136,5 +136,7 @@ a:focus-visible{outline:3px solid var(--terra);outline-offset:2px}
 @media (max-width:760px){.offerings{left:-14%;top:30%;width:15%}.offer-say{font-size:.75rem;max-width:75%}}
 .offer-fly{will-change:transform}
 .offer-smoke{position:fixed;z-index:19;pointer-events:none;border-radius:50%;background:radial-gradient(circle,rgba(140,134,122,.9) 0,rgba(160,154,142,.55) 45%,rgba(185,179,166,0) 70%);will-change:transform,opacity}
-.offer-say cite{display:block;font-style:normal;font-size:.75rem;color:var(--muted);margin-top:.1rem}
+.offer-say cite{display:block;font-style:normal;font-size:.7rem;line-height:1.25;color:var(--muted);margin-top:.2rem;overflow-wrap:anywhere}
+.offer-say cite em{font-style:italic}
+@media (max-width:760px){.offer-say{left:0;max-width:100%;padding:.2rem .4rem}.offer-say cite{font-size:.64rem}}
 .cal{font-size:.9em;white-space:nowrap}
