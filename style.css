@@ -147,3 +147,4 @@ a:focus-visible{outline:3px solid var(--terra);outline-offset:2px}
 .countdown .cd.passed{color:#A3461F;opacity:.85;border-left-color:var(--line)}
 .idea-note{font-size:.95rem}
 @media (max-width:760px){.countdown{flex-direction:column;align-items:center;gap:.3rem;font-size:.85rem}}
+.field{margin:0 0 1.1rem}

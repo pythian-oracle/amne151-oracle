@@ -57,6 +57,10 @@ var CONFIG = {
     return e;
   }
   function visible() { return QUESTIONS.filter(function (q) { return !q.showIf || q.showIf(answers); }); }
+  // Two pages: who you are, then what you bring. Each page speaks with its first question's flavour line.
+  var PAGES = [['email', 'fullName', 'tutorial'], ['idea', 'format']];
+  function pageQs(p) { return visible().filter(function (q) { return PAGES[p].indexOf(q.key) >= 0; }); }
+  function pageOf(key) { for (var p = 0; p < PAGES.length; p++) if (PAGES[p].indexOf(key) >= 0) return p; return 0; }
 
 
   /* ---------- music: procedural plucked lyre (Web Audio, Karplus-Strong) ---------- */
@@ -259,9 +263,9 @@ var CONFIG = {
   var LEAF = '<svg viewBox="0 0 20 20" aria-hidden="true"><path class="leaf" d="M3 17 C3 8 9 3 17 3 C17 11 12 17 3 17Z"/><path d="M3 17 L13 7" stroke="#5F6B3A" stroke-width="1"/></svg>';
   function renderLaurels(current) {
     laurelsEl.innerHTML = '';
-    var qs = visible();
+    var qs = PAGES;
     if (current < 0) { laurelsEl.removeAttribute('aria-label'); return; }
-    laurelsEl.setAttribute('aria-label', current >= qs.length ? 'All questions answered' : 'Question ' + (current + 1) + ' of ' + qs.length);
+    laurelsEl.setAttribute('aria-label', current >= qs.length ? 'All questions answered' : 'Page ' + (current + 1) + ' of ' + qs.length);
     qs.forEach(function (q, i) {
       var li = el('li', { 'aria-hidden': 'true' }, LEAF);
       if (i < current) li.className = 'done'; else if (i === current) li.className = 'current';
@@ -272,20 +276,25 @@ var CONFIG = {
   /* ---------- screens ---------- */
   /* ---------- save & resume (this browser only) ---------- */
   var TA_EMAIL_HTML = '<a href="mailto:tesa@student.ubc.ca?subject=AMNE151%20Project%20Proposal">tesa@student.ubc.ca</a>';
-  var DRAFT_KEY = 'amne151-oracle-draft-v1', saveTimer = null;
+  var DRAFT_KEY = 'amne151-oracle-draft-v2', OLD_DRAFT_KEY = 'amne151-oracle-draft-v1', saveTimer = null;
   function saveDraft(where) {
-    try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ v: 1, answers: answers, at: where, t: Date.now() })); } catch (e) {}
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ v: 2, answers: answers, at: where, t: Date.now() })); } catch (e) {}
   }
   function loadDraft() {
     try {
       var d = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
+      if (!d) {   // migrate a one-question-per-page (v1) draft: question index -> page index
+        d = JSON.parse(localStorage.getItem(OLD_DRAFT_KEY) || 'null');
+        localStorage.removeItem(OLD_DRAFT_KEY);
+        if (d && d.v === 1) { d.v = 2; if (d.at !== 'review') d.at = (+d.at || 0) >= 3 ? 1 : 0; }
+      }
       // Drafts from the old separate question path are discarded.
       if (d && d.answers && d.answers._mode) { clearDraft(); return null; }
-      if (d && d.v === 1 && d.answers && Object.keys(d.answers).some(function (k) { return d.answers[k]; })) return d;
+      if (d && d.v === 2 && d.answers && Object.keys(d.answers).some(function (k) { return d.answers[k]; })) return d;
     } catch (e) {}
     return null;
   }
-  function clearDraft() { try { localStorage.removeItem(DRAFT_KEY); } catch (e) {} }
+  function clearDraft() { try { localStorage.removeItem(DRAFT_KEY); localStorage.removeItem(OLD_DRAFT_KEY); } catch (e) {} }
 
   function intro() {
     var draft = loadDraft();
@@ -300,7 +309,7 @@ var CONFIG = {
       go.addEventListener('click', function () {
         answers = draft.answers; Music.start();
         if (draft.at === 'review') review();
-        else show(Math.max(0, Math.min(+draft.at || 0, visible().length - 1)));
+        else show(Math.max(0, Math.min(+draft.at || 0, PAGES.length - 1)));
       });
       var over = el('button', { type: 'button', 'class': 'btn', text: 'Start over' });
       over.addEventListener('click', function () {
@@ -323,18 +332,17 @@ var CONFIG = {
   }
 
   function show(i, fromReview) {
-    var qs = visible(); idx = i; var q = qs[i];
-    saveDraft(i);
+    var qs = pageQs(i); idx = i;
+    saveDraft(fromReview ? 'review' : i);
     renderLaurels(i); content.innerHTML = '';
-    say(q.flavour, function () { renderQuestion(q, i, qs.length, fromReview); });
+    say(qs[0].flavour, function () { renderPage(qs, i, fromReview); });
   }
 
-  function renderQuestion(q, i, total, fromReview) {
-    var form = el('form', { novalidate: 'novalidate' });
+  function renderField(q, form) {
     var id = 'q-' + q.key, err = el('p', { 'class': 'error', id: id + '-err', role: 'alert' });
-    var labelHtml = '<span class="sr-only">Question ' + (i + 1) + ' of ' + total + ': </span>' + q.label +
+    var labelHtml = q.label +
       (q.required ? ' <span class="req" aria-hidden="true">*</span><span class="sr-only">(required)</span>' : ' <span class="hint">(optional)</span>');
-    var focusTarget;
+    var wrap = el('div', { 'class': 'field' }), focusTarget;
     if (q.type === 'radio' || q.type === 'checkbox') {
       var fs = el('fieldset', { 'aria-describedby': id + '-err' });
       fs.appendChild(el('legend', { 'class': 'q-label' }, labelHtml));
@@ -347,38 +355,51 @@ var CONFIG = {
         lab.appendChild(inp); lab.appendChild(el('span', { text: opt })); box.appendChild(lab);
         if (!focusTarget) focusTarget = inp;
       });
-      fs.appendChild(box); form.appendChild(fs);
+      fs.appendChild(box); wrap.appendChild(fs);
     } else {
-      form.appendChild(el('label', { 'for': id, 'class': 'q-label' }, labelHtml));
-      if (q.hint) form.appendChild(el('p', { 'class': 'hint', id: id + '-hint', text: q.hint }));
+      wrap.appendChild(el('label', { 'for': id, 'class': 'q-label' }, labelHtml));
+      if (q.hint) wrap.appendChild(el('p', { 'class': 'hint', id: id + '-hint', text: q.hint }));
       var input = q.type === 'textarea' ? el('textarea', { id: id }) : el('input', { id: id, type: q.type, autocomplete: q.type === 'email' ? 'email' : (q.key === 'fullName' ? 'name' : 'off') });
       input.setAttribute('aria-describedby', (q.hint ? id + '-hint ' : '') + id + '-err');
       if (q.required) input.setAttribute('aria-required', 'true');
       if (q.placeholder) input.setAttribute('placeholder', q.placeholder);
       input.value = answers[q.key] || '';
-      form.appendChild(input); focusTarget = input;
+      wrap.appendChild(input); focusTarget = input;
     }
-    form.appendChild(err);
+    wrap.appendChild(err); form.appendChild(wrap);
+    return { q: q, err: err, focus: focusTarget };
+  }
+
+  function renderPage(qs, i, fromReview) {
+    var form = el('form', { novalidate: 'novalidate' });
+    form.appendChild(el('p', { 'class': 'sr-only', text: 'Page ' + (i + 1) + ' of ' + PAGES.length }));
+    var fields = qs.map(function (q) { return renderField(q, form); });
+    var collectAll = function () { qs.forEach(function (q) { collect(q, form); }); };
 
     var nav = el('div', { 'class': 'nav' });
     var back = el('button', { type: 'button', 'class': 'btn', text: i === 0 ? 'Back to start' : 'Back' });
-    back.addEventListener('click', function () { collect(q, form); i === 0 ? intro() : show(i - 1); });
-    var next = el('button', { type: 'submit', 'class': 'btn primary', text: fromReview ? 'Save and review' : (i === total - 1 ? 'Review my answers' : 'Next') });
+    back.addEventListener('click', function () { collectAll(); saveDraft(i); i === 0 ? intro() : show(i - 1); });
+    var next = el('button', { type: 'submit', 'class': 'btn primary', text: fromReview ? 'Save and review' : (i === PAGES.length - 1 ? 'Review my answers' : 'Next') });
     nav.appendChild(back); nav.appendChild(next); form.appendChild(nav);
     form.addEventListener('submit', function (e) {
-      e.preventDefault(); collect(q, form);
-      var msg = validate(q);
-      if (msg) { err.textContent = msg; if (focusTarget) focusTarget.setAttribute('aria-invalid', 'true'); (focusTarget || next).focus(); return; }
-      var qs = visible(); var cur = qs.indexOf(q);
-      if (fromReview || cur === qs.length - 1) review(); else show(cur + 1);
+      e.preventDefault(); collectAll();
+      var firstBad = null;
+      fields.forEach(function (f) {
+        var msg = validate(f.q);
+        f.err.textContent = msg;
+        if (f.focus) { if (msg) f.focus.setAttribute('aria-invalid', 'true'); else f.focus.removeAttribute('aria-invalid'); }
+        if (msg && !firstBad) firstBad = f;
+      });
+      if (firstBad) { (firstBad.focus || next).focus(); return; }
+      if (fromReview || i === PAGES.length - 1) review(); else show(i + 1);
     });
     form.addEventListener('input', function () {
       clearTimeout(saveTimer);
-      saveTimer = setTimeout(function () { collect(q, form); saveDraft(fromReview ? 'review' : i); }, 400);
+      saveTimer = setTimeout(function () { collectAll(); saveDraft(fromReview ? 'review' : i); }, 400);
     });
-    form.addEventListener('change', function () { collect(q, form); saveDraft(fromReview ? 'review' : i); });
+    form.addEventListener('change', function () { collectAll(); saveDraft(fromReview ? 'review' : i); });
     content.appendChild(form);
-    if (focusTarget) focusTarget.focus();
+    if (fields[0].focus) fields[0].focus.focus();
   }
 
   function collect(q, form) {
@@ -420,7 +441,7 @@ var CONFIG = {
   }
 
   function review() {
-    var qs = visible(); renderLaurels(qs.length); content.innerHTML = '';
+    var qs = visible(); renderLaurels(PAGES.length); content.innerHTML = '';
     saveDraft('review');
     say('Let us look upon your words once more before I carry them to the god. Change anything you wish.', function () {
       content.appendChild(el('h2', { 'class': 'q-label', text: 'Review your answers, then transmit', tabindex: '-1' }));
@@ -428,7 +449,7 @@ var CONFIG = {
       qs.forEach(function (q, i) {
         var dt = el('dt'); dt.appendChild(el('span', { text: q.label }));
         var edit = el('button', { type: 'button', 'class': 'linkish', 'aria-label': 'Edit: ' + q.label, text: 'Edit' });
-        edit.addEventListener('click', function () { show(i, true); });
+        edit.addEventListener('click', function () { show(pageOf(q.key), true); });
         dt.appendChild(edit); dl.appendChild(dt); dl.appendChild(el('dd', { text: display(q) }));
       });
       content.appendChild(dl);
@@ -436,7 +457,7 @@ var CONFIG = {
       var note = el('div', { 'class': 'notice', role: 'status' });
       var nav = el('div', { 'class': 'nav' });
       var back = el('button', { type: 'button', 'class': 'btn', text: 'Back' });
-      back.addEventListener('click', function () { show(qs.length - 1); });
+      back.addEventListener('click', function () { show(PAGES.length - 1); });
       var sub = el('button', { type: 'button', 'class': 'btn primary', text: 'Transmit to the oracle' });
       sub.addEventListener('click', function () { submit(sub, note); });
       nav.appendChild(back); nav.appendChild(sub);
