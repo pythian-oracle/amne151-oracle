@@ -11,8 +11,7 @@ var CONFIG = {
     fullName:     'entry.410167239',
     tutorial:     'entry.876568848',
     format:       'entry.1010395158',
-    idea:         'entry.1443301633',
-    question:     'entry.398201136'   // form item "Question for your TA" (question-only path)
+    idea:         'entry.1443301633'
   },
   TYPE_SPEED_MS: 22,
   // Background lyre music (made in the browser, no audio files). Set to false to start muted.
@@ -32,14 +31,16 @@ var CONFIG = {
     { key: 'tutorial', type: 'radio', required: true, label: 'Which tutorial are you in?',
       options: ['11 a.m.', '12 p.m.', '1 p.m.'],
       flavour: 'The god keeps careful records. At which hour do you gather with your fellows?' },
-    { key: 'idea', mode: 'main', type: 'textarea', required: true, label: 'Project idea in 2–3 sentences. Include the primary source(s) that inspires it.',
-      flavour: 'Now tell me what you mean to make. But hear me well: the god accepts no offering that is not rooted in the ancient sources themselves. Name the primary source that inspires you.' },
-    { key: 'format', mode: 'main', type: 'text', required: true, label: 'What will your finished project look like?',
-      placeholder: 'e.g. a short story, a painting, a board game, a recipe…',
-      flavour: 'Last: offerings came to Delphi in many shapes, bronze tripods, painted vases, hymns sung to the god. What shape will yours take?' },
-    { key: 'question', mode: 'question', type: 'textarea', required: true, label: 'What is your question?',
-      flavour: 'Even the wisest seekers come with questions first. Speak it plainly, and I shall carry it into the temple cella.',
-      hint: 'Ask anything about the Final Project. You can send your idea later.' }
+    { key: 'idea', type: 'textarea', required: true, label: 'Your project idea, even if it is only a beginning. If an ancient (primary) source is sparking it, name it.',
+      placeholder: 'e.g. I keep coming back to the myth of Persephone… maybe something about the Odyssey’s Sirens…',
+      hint: 'A hunch, a myth you keep returning to, or a half-formed thought is welcome. A sentence or two is plenty; your TA will help you shape it.',
+      requiredMsg: 'Even a single half-formed thought will do. The oracle only needs a spark to begin.',
+      flavour: 'Now tell me what stirs in you. It need not be finished: the god welcomes a hunch, a myth that will not leave you, a thought only half-formed. Your offering will grow from the ancient sources, and your TA will help you find them.' },
+    { key: 'format', type: 'text', required: true, label: 'What shape might your finished project take?',
+      placeholder: 'e.g. maybe a short story, a painting, a board game, a recipe… or “not sure yet”',
+      hint: 'Your best guess is enough. “Not sure yet” or two possibilities is fine; you can change your mind later.',
+      requiredMsg: 'A guess will do, or simply write “not sure yet.”',
+      flavour: 'Last: offerings came to Delphi in many shapes, bronze tripods, painted vases, hymns sung to the god. What shape might yours take? If you cannot yet see it, say so; the god is patient.' }
   ];
 
   var answers = {};
@@ -56,9 +57,7 @@ var CONFIG = {
     if (html) e.innerHTML = html;
     return e;
   }
-  var QUESTION_ONLY = '(Question only, no project idea yet)';
-  function mode() { return answers._mode === 'question' ? 'question' : 'main'; }
-  function visible() { var m = mode(); return QUESTIONS.filter(function (q) { return (!q.mode || q.mode === m) && (!q.showIf || q.showIf(answers)); }); }
+  function visible() { return QUESTIONS.filter(function (q) { return !q.showIf || q.showIf(answers); }); }
 
 
   /* ---------- music: procedural plucked lyre (Web Audio, Karplus-Strong) ---------- */
@@ -281,7 +280,9 @@ var CONFIG = {
   function loadDraft() {
     try {
       var d = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
-      if (d && d.v === 1 && d.answers && Object.keys(d.answers).some(function (k) { return k !== '_mode' && d.answers[k]; })) return d;
+      // Drafts from the old separate question path are discarded.
+      if (d && d.answers && d.answers._mode) { clearDraft(); return null; }
+      if (d && d.v === 1 && d.answers && Object.keys(d.answers).some(function (k) { return d.answers[k]; })) return d;
     } catch (e) {}
     return null;
   }
@@ -316,9 +317,7 @@ var CONFIG = {
       content.appendChild(el('p', { 'class': 'notice idea-note' }, IDEA_NOTE));
       var b = el('button', { type: 'button', 'class': 'btn primary', text: 'Approach the oracle' });
       b.addEventListener('click', function () { answers = {}; Music.start(); show(0); });
-      var q = el('button', { type: 'button', 'class': 'btn', text: 'Not ready yet, but I have a question' });
-      q.addEventListener('click', function () { answers = { _mode: 'question' }; Music.start(); show(0); });
-      var nav = el('div', { 'class': 'nav' }); nav.appendChild(b); nav.appendChild(q); content.appendChild(nav);
+      var nav = el('div', { 'class': 'nav' }); nav.appendChild(b); content.appendChild(nav);
       content.appendChild(el('p', { 'class': 'guide-link' }, 'New here? <a href="info.html">Read the Project Proposal Guide first</a>. Your progress is saved if you step away.'));
       b.focus();
     });
@@ -391,7 +390,7 @@ var CONFIG = {
 
   function validate(q) {
     var v = answers[q.key] || '';
-    if (q.required && !v) return q.type === 'radio' ? 'Please choose one option.' : 'This one is required. The oracle awaits your answer.';
+    if (q.required && !v) return q.type === 'radio' ? 'Please choose one option.' : (q.requiredMsg || 'This one is required. The oracle awaits your answer.');
     if (q.type === 'email' && v && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return 'That does not look like an email address (e.g. name@student.ubc.ca).';
     return '';
   }
@@ -400,7 +399,7 @@ var CONFIG = {
     return answers[q.key] || '—';
   }
   function asText() {
-    return (mode() === 'question' ? 'AMNE 151 Final Project question' : 'AMNE 151 Final Project idea') + '\n\n' + visible().map(function (q) { return q.label + '\n' + display(q); }).join('\n\n');
+    return 'AMNE 151 Final Project idea' + '\n\n' + visible().map(function (q) { return q.label + '\n' + display(q); }).join('\n\n');
   }
 
   function copyButton() {
@@ -450,9 +449,8 @@ var CONFIG = {
 
   function configured() {
     if (/PASTE_FORM_ID_HERE|<ID>/.test(CONFIG.FORM_ACTION_URL) || !/\/formResponse$/.test(CONFIG.FORM_ACTION_URL)) return false;
-    var keys = ['fullName', 'tutorial', 'format', 'idea'];   // main path; the question entry is checked separately
+    var keys = ['fullName', 'tutorial', 'format', 'idea'];
     for (var i = 0; i < keys.length; i++) { if (!CONFIG.ENTRY[keys[i]] || /entry\.0000000/.test(CONFIG.ENTRY[keys[i]])) return false; }
-    if (mode() === 'question' && !/^entry\.\d+$/.test(CONFIG.ENTRY.question || '')) return false;
     return true;
   }
 
@@ -466,14 +464,8 @@ var CONFIG = {
     p.append(E.email, answers.email);
     p.append(E.fullName, answers.fullName);
     p.append(E.tutorial, answers.tutorial);
-    if (mode() === 'question') {
-      p.append(E.format, QUESTION_ONLY);
-      p.append(E.idea, QUESTION_ONLY);
-      p.append(E.question, answers.question);
-    } else {
-      p.append(E.format, answers.format);
-      p.append(E.idea, answers.idea);
-    }
+    p.append(E.format, answers.format);
+    p.append(E.idea, answers.idea);
     btn.disabled = true; btn.textContent = 'The vapours rise…';
     fetch(CONFIG.FORM_ACTION_URL, { method: 'POST', mode: 'no-cors', body: p })
       .then(function () { clearTimeout(saveTimer); clearDraft(); ending(); })   // no-cors: an opaque reply is the best confirmation we get
@@ -486,12 +478,9 @@ var CONFIG = {
   function ending() {
     content.innerHTML = '';
     var name = (answers.fullName || '').split(' ')[0];
-    var qOnly = mode() === 'question';
-    var line = qOnly
-      ? 'It is done' + (name ? ', ' + name : '') + '. Your question has been carried to your TA, who will reply by email.\nReturn to me when your idea is ripe. Remember, your Proposal is due Friday 23 October at 10 p.m.'
-      : 'It is done' + (name ? ', ' + name : '') + '. Your idea has been transmitted through the vapours to your TA.\nThe god has spoken: "Seek the sources, read closely, and make something worthy of the Muses." Remember, your Proposal is due Friday 23 October at 10 p.m.';
+    var line = 'It is done' + (name ? ', ' + name : '') + '. Your idea has been transmitted through the vapours to your TA.\nThe god has spoken: "Seek the sources, read closely, and make something worthy of the Muses." Remember, your Proposal is due Friday 23 October at 10 p.m.';
     say(line, function () {
-      content.appendChild(el('p', { 'class': 'q-label', text: qOnly ? 'Your question has been carried to your TA, who will reply by email.' : 'Your TA will reply by email.', tabindex: '-1' }));
+      content.appendChild(el('p', { 'class': 'q-label', text: 'Your TA will reply by email.', tabindex: '-1' }));
       content.appendChild(el('p', { 'class': 'hint', text: 'Keep a copy of your answers for your records:' }));
       content.appendChild(copyButton());
       var again = el('button', { type: 'button', 'class': 'linkish', text: 'Start over' });
