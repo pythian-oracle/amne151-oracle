@@ -224,7 +224,7 @@ var CONFIG = {
 
   /* ---------- screens ---------- */
   /* ---------- save & resume (this browser only) ---------- */
-  var CANVAS_LINK_HTML = '<a href="https://canvas.ubc.ca/conversations" target="_blank" rel="noopener">Canvas Inbox (opens in a new tab)</a>';
+  var TA_EMAIL_HTML = '<a href="mailto:tesa@student.ubc.ca?subject=AMNE%20151%20project%20idea">tesa@student.ubc.ca</a>';
   var DRAFT_KEY = 'amne151-oracle-draft-v1', saveTimer = null;
   function saveDraft(where) {
     try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ v: 1, answers: answers, at: where, t: Date.now() })); } catch (e) {}
@@ -358,7 +358,7 @@ var CONFIG = {
     var status = el('span', { role: 'status', 'class': 'hint' });
     b.addEventListener('click', function () {
       var t = asText();
-      var ok = function () { status.textContent = ' Copied. Paste it into a Canvas message to your TA if needed.'; };
+      var ok = function () { status.textContent = ' Copied. Paste it into an email to your TA if needed.'; };
       if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(ok, function () { fallbackCopy(t) && ok(); });
       else if (fallbackCopy(t)) ok(); else status.textContent = ' Could not copy automatically; please select the text above.';
     });
@@ -408,7 +408,7 @@ var CONFIG = {
   function submit(btn, note) {
     if (!configured()) {
       note.hidden = false;
-      note.innerHTML = 'The oracle\'s messenger has not been set up yet, so this answer cannot be transmitted automatically. Use "Copy my answers" and send them to your TA through ' + CANVAS_LINK_HTML + '.';
+      note.innerHTML = 'The oracle\'s messenger has not been set up yet, so this answer cannot be transmitted automatically. Use "Copy my answers" and email them to your TA at ' + TA_EMAIL_HTML + '.';
       return;
     }
     var p = new URLSearchParams(), E = CONFIG.ENTRY;
@@ -428,7 +428,7 @@ var CONFIG = {
       .then(function () { clearTimeout(saveTimer); clearDraft(); ending(); })   // no-cors: an opaque reply is the best confirmation we get
       .catch(function () {
         btn.disabled = false; btn.textContent = 'Try transmitting again'; note.hidden = false;
-        note.innerHTML = 'Your answers could not be transmitted (are you offline?). Try again, or use "Copy my answers" and send them to your TA through ' + CANVAS_LINK_HTML + '.';
+        note.innerHTML = 'Your answers could not be transmitted (are you offline?). Try again, or use "Copy my answers" and email them to your TA at ' + TA_EMAIL_HTML + '.';
       });
   }
 
@@ -437,11 +437,11 @@ var CONFIG = {
     var name = (answers.fullName || '').split(' ')[0];
     var qOnly = mode() === 'question';
     var line = qOnly
-      ? 'It is done' + (name ? ', ' + name : '') + '. Your question has been carried to your TA, who will reply through Canvas.\nReturn to me when your idea is ripe. Remember, your Proposal is due Friday 23 October at 10 p.m.'
+      ? 'It is done' + (name ? ', ' + name : '') + '. Your question has been carried to your TA, who will reply by email.\nReturn to me when your idea is ripe. Remember, your Proposal is due Friday 23 October at 10 p.m.'
       : 'It is done' + (name ? ', ' + name : '') + '. Your idea has been transmitted through the vapours to your TA.\nThe god has spoken: "Seek the sources, read closely, and make something worthy of the Muses." Remember, your Proposal is due Friday 23 October at 10 p.m.';
     say(line, function () {
-      content.appendChild(el('p', { 'class': 'q-label', text: qOnly ? 'Your question has been carried to your TA, who will reply through Canvas.' : 'Your TA will reply through Canvas.', tabindex: '-1' }));
-      content.appendChild(el('p', { 'class': 'hint' }, 'Questions in the meantime? Message your TA in ' + CANVAS_LINK_HTML + '.'));
+      content.appendChild(el('p', { 'class': 'q-label', text: qOnly ? 'Your question has been carried to your TA, who will reply by email.' : 'Your TA will reply by email.', tabindex: '-1' }));
+      content.appendChild(el('p', { 'class': 'hint' }, 'Questions in the meantime? Email your TA: ' + TA_EMAIL_HTML));
       content.appendChild(el('p', { 'class': 'hint', text: 'Keep a copy of your answers for your records:' }));
       content.appendChild(copyButton());
       var again = el('button', { type: 'button', 'class': 'linkish', text: 'Start over' });

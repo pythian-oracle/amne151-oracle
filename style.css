@@ -86,7 +86,7 @@ a:focus-visible{outline:3px solid var(--terra);outline-offset:2px}
 .doc h3{font-size:1.15rem;margin:1.4rem 0 .3rem}
 .doc .lede{background:#F1E8D4;border-top:3px double var(--gold);border-bottom:3px double var(--gold);padding:.8rem 1rem;font-style:italic}
 .doc .lede p{margin:.25rem 0}
-.doc .cite{padding-left:2em;text-indent:-2em;margin:.6rem 0}
+.doc .bib{padding-left:2em;text-indent:-2em;margin:.6rem 0}
 .doc .ex{padding:.5rem .8rem .5rem 2.6em;text-indent:-1.6em;margin:.5rem 0;border-left:4px solid var(--line);background:#fff;overflow-wrap:anywhere}
 .doc .ex.good{border-color:var(--olive)}
 .doc .ex.bad{border-color:#8A2A10;color:var(--muted)}

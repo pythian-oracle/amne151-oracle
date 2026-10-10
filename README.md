@@ -24,7 +24,7 @@ Files: `index.html`, `style.css`, `game.js` (all artwork is drawn in code, so th
 ## 3. Test once
 Open `index.html` (double-click it), go through the questions with fake answers, and press **Transmit to the oracle**. Then check the response sheet. If no row appears, re-check the entry numbers and the two settings above.
 Note: Google doesn't let the page see whether the form accepted the answer, so the game always shows the "success" screen. That's why this test matters. Delete the test row afterwards.
-Until CONFIG is filled in, the Transmit button just tells students to use **Copy my answers** and send them to you through Canvas instead.
+Until CONFIG is filled in, the Transmit button just tells students to use **Copy my answers** and email them to you (tesa@student.ubc.ca) instead.
 
 ## 4. Put it online with GitHub Pages
 1. Make a free account at https://github.com, then click **New repository**. Give it a name (e.g. `amne151-oracle`), make it **Public**, and create it.
