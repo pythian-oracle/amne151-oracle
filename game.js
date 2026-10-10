@@ -224,7 +224,7 @@ var CONFIG = {
 
   /* ---------- screens ---------- */
   /* ---------- save & resume (this browser only) ---------- */
-  var TA_EMAIL_HTML = '<a href="mailto:tesa@student.ubc.ca?subject=AMNE%20151%20project%20idea">tesa@student.ubc.ca</a>';
+  var TA_EMAIL_HTML = '<a href="mailto:tesa@student.ubc.ca?subject=AMNE151%20Project%20Proposal">tesa@student.ubc.ca</a>';
   var DRAFT_KEY = 'amne151-oracle-draft-v1', saveTimer = null;
   function saveDraft(where) {
     try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ v: 1, answers: answers, at: where, t: Date.now() })); } catch (e) {}
