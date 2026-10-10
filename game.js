@@ -38,7 +38,7 @@ var CONFIG = {
       placeholder: 'e.g. a short story, a painting, a board game, a recipe…',
       flavour: 'Last: offerings came to Delphi in many shapes, bronze tripods, painted vases, hymns sung to the god. What shape will yours take?' },
     { key: 'question', mode: 'question', type: 'textarea', required: true, label: 'What is your question?',
-      flavour: 'Even the wisest seekers come with questions first. Speak it plainly, and I shall carry it to your TA.',
+      flavour: 'Even the wisest seekers come with questions first. Speak it plainly, and I shall carry it into the temple.',
       hint: 'Ask anything about the Final Project. You can send your idea later.' }
   ];
 
@@ -312,7 +312,7 @@ var CONFIG = {
   }
   function freshIntro() {
     idx = -1; renderLaurels(-1); content.innerHTML = '';
-    say('Greetings, student of AMNE 151. I am the Amnethya, priestess of Minardos at Buchania.\n\nBring me your idea for the Final Project, and I shall carry it to your TA for approval. A few questions, one at a time.\n\nRemember, your scroll (1000–1500 words, about 4 to 6 pages double-spaced) is due Friday 23 October at 10 p.m., so do not tarry.', function () {
+    say('Greetings, student of AMNE 151. I am the Amnethya, priestess of Minardos at Buchania.\n\nBring me your idea for the Final Project, and I shall carry it into the temple for approval. A few questions, one at a time.\n\nRemember, your scroll (1000–1500 words, about 4 to 6 pages double-spaced) is due Friday 23 October at 10 p.m., so do not tarry.', function () {
       content.appendChild(el('p', { 'class': 'notice idea-note' }, IDEA_NOTE));
       var b = el('button', { type: 'button', 'class': 'btn primary', text: 'Approach the oracle' });
       b.addEventListener('click', function () { answers = {}; Music.start(); show(0); });
