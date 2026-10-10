@@ -24,7 +24,7 @@ var CONFIG = {
   'use strict';
   var QUESTIONS = [
     { key: 'email', type: 'email', required: true, label: 'Email address',
-      flavour: 'Welcome, traveller. Before I give you the answer of Apollo, I must know where to send it.',
+      flavour: 'Welcome, traveller. Before I give you the answer of Amnethya, I must know where to send it.',
       hint: 'Your UBC student email is best.' },
     { key: 'fullName', type: 'text', required: true, label: 'Name (If group: names of all group members)',
       flavour: 'Every supplicant at Delphi gives a name. What is yours? If you come as a company, name them all.' },
