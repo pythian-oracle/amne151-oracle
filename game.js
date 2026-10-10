@@ -44,7 +44,7 @@ var CONFIG = {
 
   var answers = {};
   var idx = -1, typingTimer = null, fullText = '', afterTyping = null;
-  var IDEA_NOTE = 'Send your idea by <strong>Tue 20 Oct, 10 p.m.</strong> Late ideas will still get comments, but lateness will affect your mark.';
+  var IDEA_NOTE = 'Send your idea by <strong>Tue 20 Oct, 10 p.m.</strong> at the very latest. Late ideas will still get comments, but lateness will affect your mark.';
   var CAL_HTML = 'Add to calendar: <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text=AMNE%20151%20Final%20Project%20Proposal%20due&amp;dates=20261023T220000/20261023T221500&amp;ctz=America/Vancouver&amp;details=Submit%20on%20Canvas%20by%2010%20p.m." target="_blank" rel="noopener">Google</a> &middot; <a href="amne151-proposal-due.ics" download>Apple/Outlook (.ics)</a>';
   var $ = function (id) { return document.getElementById(id); };
   var speech = $('speech'), content = $('content'), svg = $('pythia'), laurelsEl = $('laurels'), skipBtn = $('skipType');
