@@ -5,8 +5,8 @@ CALSCALE:GREGORIAN
 BEGIN:VEVENT
 UID:amne151-idea-due-20261020@pythian-oracle.github.io
 DTSTAMP:20261010T040000Z
-DTSTART:20261021T050000Z
-DTEND:20261021T051500Z
+DTSTART:20261017T050000Z
+DTEND:20261017T051500Z
 SUMMARY:AMNE 151 Final Project idea due
 DESCRIPTION:Send your idea to your TA by 10 p.m.. Late ideas will still get comments\, but lateness will affect your mark.
 BEGIN:VALARM
