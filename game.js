@@ -314,7 +314,6 @@ var CONFIG = {
     idx = -1; renderLaurels(-1); content.innerHTML = '';
     say('Greetings, student of AMNE 151. I am the Pythia, priestess of Apollo at Delphi.\nBring me your idea for the Final Project, and I shall carry it to your TA for approval. A few questions, one at a time. Your Proposal is due Friday 23 October at 10 p.m., so do not tarry.', function () {
       content.appendChild(el('p', { 'class': 'notice idea-note' }, IDEA_NOTE));
-      content.appendChild(el('p', { 'class': 'hint cal' }, CAL_HTML));
       var b = el('button', { type: 'button', 'class': 'btn primary', text: 'Approach the oracle' });
       b.addEventListener('click', function () { answers = {}; Music.start(); show(0); });
       var q = el('button', { type: 'button', 'class': 'btn', text: 'Not ready yet, but I have a question' });
@@ -493,8 +492,6 @@ var CONFIG = {
       : 'It is done' + (name ? ', ' + name : '') + '. Your idea has been transmitted through the vapours to your TA.\nThe god has spoken: "Seek the sources, read closely, and make something worthy of the Muses." Remember, your Proposal is due Friday 23 October at 10 p.m.';
     say(line, function () {
       content.appendChild(el('p', { 'class': 'q-label', text: qOnly ? 'Your question has been carried to your TA, who will reply by email.' : 'Your TA will reply by email.', tabindex: '-1' }));
-      content.appendChild(el('p', { 'class': 'hint' }, 'Questions in the meantime? Email your TA: ' + TA_EMAIL_HTML));
-      content.appendChild(el('p', { 'class': 'hint cal' }, CAL_HTML));
       content.appendChild(el('p', { 'class': 'hint', text: 'Keep a copy of your answers for your records:' }));
       content.appendChild(copyButton());
       var again = el('button', { type: 'button', 'class': 'linkish', text: 'Start over' });
