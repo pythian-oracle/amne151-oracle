@@ -508,9 +508,9 @@ var CONFIG = {
     // Verbatim quotes from public-domain translations of syllabus works (Butler 1898/1900; Evelyn-White 1914, Project Gutenberg).
     // Full Chicago (17th ed.) first-note citations; see the bibliography in info.html.
     var EW = ', in <em>Hesiod, the Homeric Hymns, and Homerica</em>, trans. Hugh G. Evelyn-White (London: William Heinemann, 1914), ';
-    var GB348 = ', https://www.gutenberg.org/ebooks/348.';
-    function il(bk) { return 'Homer, <em>The Iliad</em>, trans. Samuel Butler (London: Longmans, Green, 1898), ' + bk + ', https://www.gutenberg.org/ebooks/2199.'; }
-    function od(bk) { return 'Homer, <em>The Odyssey</em>, trans. Samuel Butler (London: Longmans, Green, 1900), ' + bk + ', https://www.gutenberg.org/ebooks/1727.'; }
+    var GB348 = '.';
+    function il(bk) { return 'Homer, <em>The Iliad</em>, trans. Samuel Butler (London: Longmans, Green, 1898), ' + bk + '.'; }
+    function od(bk) { return 'Homer, <em>The Odyssey</em>, trans. Samuel Butler (London: Longmans, Green, 1900), ' + bk + '.'; }
     function hy(god, ll) { return '<em>Homeric Hymn to ' + god + '</em>' + EW + ll + GB348; }
     var LINES = {
       myrtle: [
