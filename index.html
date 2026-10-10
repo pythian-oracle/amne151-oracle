@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Consult the Oracle · AMNE 151 Final Project Idea</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#panel">Skip to the questions</a>
+<header class="top">
+  <button type="button" id="musicToggle" class="music-toggle" aria-pressed="false" title="Turn the background lyre music on or off"><span class="music-icon" aria-hidden="true">&#9835;</span> <span class="music-label">Music on</span></button>
+  <p class="course">AMNE 151 · Greek &amp; Roman Mythology</p>
+  <h1>Consult the Oracle</h1>
+  <p class="sub">Send your Final Project idea to your TA for approval</p>
+</header>
+<main class="stage">
+  <div class="scene" aria-hidden="true">
+    <svg id="pythia" viewBox="0 0 400 420" role="img">
+      <defs>
+        <linearGradient id="col" x1="0" x2="1"><stop offset="0" stop-color="#E4DAC6"/><stop offset=".5" stop-color="#F3ECDD"/><stop offset="1" stop-color="#D6CAB2"/></linearGradient>
+        <radialGradient id="glow"><stop offset="0" stop-color="#E7B45A" stop-opacity=".55"/><stop offset="1" stop-color="#E7B45A" stop-opacity="0"/></radialGradient>
+      </defs>
+      <!-- columns -->
+      <g class="columns">
+        <g transform="translate(22,0)"><rect x="0" y="40" width="50" height="14" fill="#CFC2A8"/><rect x="5" y="54" width="40" height="320" fill="url(#col)"/><g stroke="#C9BCA1" stroke-width="1.5"><line x1="15" y1="56" x2="15" y2="372"/><line x1="25" y1="56" x2="25" y2="372"/><line x1="35" y1="56" x2="35" y2="372"/></g><rect x="-3" y="372" width="56" height="12" fill="#CFC2A8"/></g>
+        <g transform="translate(328,0)"><rect x="0" y="40" width="50" height="14" fill="#CFC2A8"/><rect x="5" y="54" width="40" height="320" fill="url(#col)"/><g stroke="#C9BCA1" stroke-width="1.5"><line x1="15" y1="56" x2="15" y2="372"/><line x1="25" y1="56" x2="25" y2="372"/><line x1="35" y1="56" x2="35" y2="372"/></g><rect x="-3" y="372" width="56" height="12" fill="#CFC2A8"/></g>
+        <rect x="10" y="22" width="380" height="18" fill="#CFC2A8"/>
+        <path d="M10 22 L200 0 L390 22Z" fill="#DCD0B8"/>
+        <g fill="#A3461F" opacity=".75"><rect x="30" y="28" width="10" height="6"/><rect x="60" y="28" width="10" height="6"/><rect x="90" y="28" width="10" height="6"/><rect x="300" y="28" width="10" height="6"/><rect x="330" y="28" width="10" height="6"/><rect x="360" y="28" width="10" height="6"/></g>
+      </g>
+      <rect x="0" y="384" width="400" height="36" fill="#DCD0B8"/>
+      <!-- laurel garland -->
+      <g class="laurel-garland" fill="#6E7A45">
+        <path d="M110 70 Q200 100 290 70" stroke="#6E7A45" stroke-width="2" fill="none"/>
+        <ellipse cx="130" cy="78" rx="8" ry="3.5" transform="rotate(30 130 78)"/><ellipse cx="155" cy="86" rx="8" ry="3.5" transform="rotate(20 155 86)"/><ellipse cx="180" cy="90" rx="8" ry="3.5" transform="rotate(8 180 90)"/><ellipse cx="220" cy="90" rx="8" ry="3.5" transform="rotate(-8 220 90)"/><ellipse cx="245" cy="86" rx="8" ry="3.5" transform="rotate(-20 245 86)"/><ellipse cx="270" cy="78" rx="8" ry="3.5" transform="rotate(-30 270 78)"/>
+      </g>
+      <!-- vapour -->
+      <g class="vapour" fill="#B9B3A6">
+        <circle class="puff p1" cx="200" cy="330" r="14"/><circle class="puff p2" cx="190" cy="330" r="12"/><circle class="puff p3" cx="212" cy="330" r="16"/><circle class="puff p4" cx="200" cy="330" r="10"/>
+      </g>
+      <ellipse class="glow" cx="200" cy="335" rx="70" ry="40" fill="url(#glow)"/>
+      <!-- chasm / brazier flame -->
+      <g class="flame"><path d="M200 300 C188 316 190 330 200 336 C210 330 214 316 200 300Z" fill="#D98A2B"/><path d="M200 314 C194 322 195 331 200 334 C205 331 206 322 200 314Z" fill="#F2C760"/></g>
+      <!-- tripod -->
+      <g stroke="#7C5A2E" stroke-width="6" stroke-linecap="round" fill="none">
+        <line x1="160" y1="270" x2="135" y2="382"/><line x1="240" y1="270" x2="265" y2="382"/><line x1="200" y1="272" x2="200" y2="296"/>
+      </g>
+      <ellipse cx="200" cy="268" rx="62" ry="13" fill="#9C7A3C"/><ellipse cx="200" cy="264" rx="58" ry="9" fill="#B8954E"/>
+      <!-- The Pythia: priestess of Apollo, seated on the tripod -->
+      <g class="pythia-body">
+        <!-- veil / himation behind, over head and shoulders -->
+        <path d="M200 96 C168 96 156 122 154 150 C150 185 138 215 132 262 L268 262 C262 215 250 185 246 150 C244 122 232 96 200 96Z" fill="#B7A27A"/>
+        <!-- long flowing hair -->
+        <path d="M178 128 C172 160 170 196 160 232 C172 236 182 226 186 206 C188 186 186 164 186 146Z" fill="#4A3628"/>
+        <path d="M222 128 C228 160 230 196 240 232 C228 236 218 226 214 206 C212 186 214 164 214 146Z" fill="#4A3628"/>
+        <!-- peplos / chiton, long, with folds, hanging over the tripod -->
+        <path d="M168 176 C186 168 214 168 232 176 C244 200 248 230 250 262 C262 274 262 296 252 312 L148 312 C138 296 138 274 150 262 C152 230 156 200 168 176Z" fill="#EDE5D3" stroke="#8C7F67" stroke-width="1.5"/>
+        <g stroke="#C9BDA3" stroke-width="1.6" fill="none">
+          <path d="M184 180 C182 205 180 230 178 260"/><path d="M200 178 L200 258"/><path d="M216 180 C218 205 220 230 222 260"/>
+          <path d="M160 272 C162 288 160 300 158 312"/><path d="M180 270 C180 290 178 300 178 312"/><path d="M200 270 L200 312"/><path d="M220 270 C220 290 222 300 222 312"/><path d="M240 272 C238 288 240 300 242 312"/>
+        </g>
+        <!-- apoptygma (overfold) edge and belt -->
+        <path d="M162 214 C180 222 220 222 238 214" stroke="#B8954E" stroke-width="1.5" fill="none"/>
+        <path d="M164 206 C182 212 218 212 236 206 L236 212 C218 218 182 218 164 212Z" fill="#A3461F"/>
+        <!-- veil drape falling over shoulders in front -->
+        <path d="M168 176 C156 196 152 226 156 252 C164 240 168 216 176 196Z" fill="#A89167"/>
+        <path d="M232 176 C244 196 248 226 244 252 C236 240 232 216 224 196Z" fill="#A89167"/>
+        <!-- feet -->
+        <ellipse cx="186" cy="314" rx="8" ry="3.5" fill="#D9B08C"/><ellipse cx="214" cy="314" rx="8" ry="3.5" fill="#D9B08C"/>
+        <!-- arm with laurel sprig and phiale -->
+        <path d="M176 196 C166 220 172 238 190 236" stroke="#C4986F" stroke-width="7" stroke-linecap="round" fill="none"/>
+        <ellipse cx="196" cy="236" rx="13" ry="3.5" fill="#B8954E"/>
+        <path d="M222 196 C232 214 230 226 222 232" stroke="#C4986F" stroke-width="7" stroke-linecap="round" fill="none"/>
+        <g fill="#6E7A45"><path d="M222 232 L232 210" stroke="#6E7A45" stroke-width="1.5"/><ellipse cx="229" cy="216" rx="5" ry="2" transform="rotate(-60 229 216)"/><ellipse cx="233" cy="212" rx="5" ry="2" transform="rotate(-20 233 212)"/></g>
+        <g class="head">
+          <!-- neck -->
+          <path d="M193 152 L193 172 L207 172 L207 152Z" fill="#D2A57F"/>
+          <!-- face: soft oval -->
+          <path d="M200 112 C214 112 222 124 221 138 C220 152 210 162 200 163 C190 162 180 152 179 138 C178 124 186 112 200 112Z" fill="#DDB491"/>
+          <!-- hair parted under the veil -->
+          <path d="M180 136 C178 118 190 108 200 108 C210 108 222 118 220 136 C214 124 206 120 200 116 C194 120 186 124 180 136Z" fill="#4A3628"/>
+          <!-- veil edge over the head -->
+          <path d="M174 140 C170 110 186 98 200 98 C214 98 230 110 226 140 C222 118 212 106 200 106 C188 106 178 118 174 140Z" fill="#C9B48A"/>
+          <!-- laurel wreath -->
+          <g fill="#6E7A45"><ellipse cx="183" cy="114" rx="6" ry="2.4" transform="rotate(-40 183 114)"/><ellipse cx="191" cy="108" rx="6" ry="2.4" transform="rotate(-20 191 108)"/><ellipse cx="200" cy="106" rx="6" ry="2.4"/><ellipse cx="209" cy="108" rx="6" ry="2.4" transform="rotate(20 209 108)"/><ellipse cx="217" cy="114" rx="6" ry="2.4" transform="rotate(40 217 114)"/></g>
+          <!-- earrings -->
+          <circle cx="180" cy="146" r="2.6" fill="#B8954E"/><circle cx="220" cy="146" r="2.6" fill="#B8954E"/>
+          <!-- brows, closed eyes with lashes -->
+          <g stroke="#4A3628" stroke-width="1.3" fill="none" stroke-linecap="round"><path d="M186 129 q5 -3 10 0"/><path d="M204 129 q5 -3 10 0"/></g>
+          <g class="eyes" stroke="#2B2420" stroke-width="1.6" fill="none" stroke-linecap="round">
+            <path d="M186 137 q5 4 10 0"/><path d="M204 137 q5 4 10 0"/>
+            <path d="M187 138 l-2 2.5 M190 139.5 l-1 3 M193.5 139.5 l0 3" stroke-width="1"/>
+            <path d="M213 138 l2 2.5 M210 139.5 l1 3 M206.5 139.5 l0 3" stroke-width="1"/>
+          </g>
+          <ellipse cx="189" cy="146" rx="4" ry="2" fill="#D98F7A" opacity=".5"/><ellipse cx="211" cy="146" rx="4" ry="2" fill="#D98F7A" opacity=".5"/>
+          <path d="M199 140 q-2 6 1 8" stroke="#B88A66" stroke-width="1.1" fill="none"/>
+          <!-- lips -->
+          <path d="M194 153 q3 -2.5 6 -0.5 q3 -2 6 0.5 q-6 4 -12 0Z" fill="#A3461F"/>
+          <ellipse class="mouth" cx="200" cy="154" rx="3" ry="0.9" fill="#6B2A1C"/>
+        </g>
+      </g>
+    </svg>
+  </div>
+
+  <section id="panel" class="panel" aria-live="polite">
+    <ol class="laurels" id="laurels" aria-label="Progress"></ol>
+    <div class="scroll" id="scroll">
+      <p class="speech" id="speech"></p>
+      <button type="button" class="linkish" id="skipType">Skip</button>
+    </div>
+    <div id="content"></div>
+  </section>
+</main>
+<footer class="foot">Proposal due <strong>Fri 23 Oct, 10 p.m.</strong> · Questions? Ask your TA in tutorial or by email.<br>Your answers are saved in this browser only, until you submit.</footer>
+<noscript><p class="noscript">This page needs JavaScript. Please use the course's Google Form link instead.</p></noscript>
+<script src="game.js"></script>
+</body>
+</html>
