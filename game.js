@@ -24,7 +24,7 @@ var CONFIG = {
   'use strict';
   var QUESTIONS = [
     { key: 'email', type: 'email', required: true, label: 'Email address',
-      flavour: 'Welcome, traveller. Before I give you the answer of Amnethya, I must know where to send it.',
+      flavour: 'Welcome, traveller. Before I give you the answer of Teresia, I must know where to send it.',
       hint: 'Your UBC student email is best.' },
     { key: 'fullName', type: 'text', required: true, label: 'Name (If group: names of all group members)',
       flavour: 'Every supplicant at Delphi gives a name. What is yours? If you come as a company, name them all.' },
@@ -313,7 +313,7 @@ var CONFIG = {
   }
   function freshIntro() {
     idx = -1; renderLaurels(-1); content.innerHTML = '';
-    say('Greetings, student of AMNE 151. I am the Amnethya, priestess of Minardos at Buchania.\n\nBring me your idea for the Final Project, and I shall carry it into the temple for approval. A few questions, one at a time. Your idea need not be finished: a hunch or a half-formed thought is welcome.\n\nRemember, your scroll (1000–1500 words, about 4 to 6 pages double-spaced) is due Friday 23 October at 10 p.m., so do not tarry.', function () {
+    say('Greetings, student of AMNE 151. I am the Teresia, priestess of Minardos at Buchania.\n\nBring me your idea for the Final Project, and I shall carry it into the temple for approval. A few questions, one at a time. Your idea need not be finished: a hunch or a half-formed thought is welcome.\n\nRemember, your scroll (1000–1500 words, about 4 to 6 pages double-spaced) is due Friday 23 October at 10 p.m., so do not tarry.', function () {
       content.appendChild(el('p', { 'class': 'notice idea-note' }, IDEA_NOTE));
       var b = el('button', { type: 'button', 'class': 'btn primary', text: 'Approach the oracle' });
       b.addEventListener('click', function () { answers = {}; Music.start(); show(0); });
