@@ -33,7 +33,6 @@ var CONFIG = {
       flavour: 'The god keeps careful records. At which hour do you gather with your fellows?' },
     { key: 'idea', type: 'textarea', required: true, label: 'Your project idea, even if it is only a beginning. If an ancient (primary) source is sparking it, name it.',
       placeholder: 'e.g. I keep coming back to the myth of Persephone… maybe something about the Odyssey’s Sirens…',
-      hint: 'A hunch, a myth you keep returning to, or a half-formed thought is welcome. A sentence or two is plenty; your oracle will help you shape it.',
       requiredMsg: 'Even a single half-formed thought will do. The oracle only needs a spark to begin.',
       flavour: 'Now tell me what stirs in you. It need not be finished: the god welcomes a hunch, a myth that will not leave you, a thought only half-formed. Your offering will grow from the ancient sources, and your oracle will help you find them.' },
     { key: 'format', type: 'text', required: true, label: 'What shape might your finished project take?',
