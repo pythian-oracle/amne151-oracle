@@ -46,3 +46,8 @@ Soft lyre-like music is created live by the browser (no audio files). It starts 
 
 ## "Not ready yet, but I have a question"
 A second button on the intro starts a short path: email, name, tutorial, then **What is your question?** It goes to the form's "Question for your TA" item (`question` in CONFIG). The required format and idea answers are filled in automatically with "(Question only, no project idea yet)" so Google accepts the response. In the main idea path the question item is left blank.
+
+## Offerings minigame
+Click (or Enter) the myrtle, lamb or ox left of the Pythia to offer it: it arcs into the flame, burns, and smoke rises above the temple, with a short Web Audio ritual cue (muted with the music toggle). The Pythia answers with short verbatim quotes from public-domain translations of syllabus works (Butler's Iliad/Odyssey; Evelyn-White's Homeric Hymns and Works and Days). Decorative only; it never touches the form.
+
+`amne151-proposal-due.ics` is the "Add to calendar" file for the proposal due date.

@@ -44,6 +44,7 @@ var CONFIG = {
 
   var answers = {};
   var idx = -1, typingTimer = null, fullText = '', afterTyping = null;
+  var CAL_HTML = 'Add to calendar: <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text=AMNE%20151%20Final%20Project%20Proposal%20due&amp;dates=20261023T220000/20261023T221500&amp;ctz=America/Vancouver&amp;details=Submit%20on%20Canvas%20by%2010%20p.m." target="_blank" rel="noopener">Google</a> &middot; <a href="amne151-proposal-due.ics" download>Apple/Outlook (.ics)</a>';
   var $ = function (id) { return document.getElementById(id); };
   var speech = $('speech'), content = $('content'), svg = $('pythia'), laurelsEl = $('laurels'), skipBtn = $('skipType');
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -63,7 +64,7 @@ var CONFIG = {
   var Music = (function () {
     var AC = window.AudioContext || window.webkitAudioContext;
     var ctx = null, master = null, bus = null, timer = null, drone = null, cache = {};
-    var KEY = 'oracle-music-on';
+    var KEY = 'oracle-music-on', cueUntil = 0;
     var on = (function () { try { var v = localStorage.getItem(KEY); return v === null ? CONFIG.MUSIC_DEFAULT_ON : v === '1'; } catch (e) { return CONFIG.MUSIC_DEFAULT_ON; } })();
     // D Dorian-ish, two octaves (D E F G A B C), with Phrygian E-flat colour occasionally
     var SCALE = [146.83, 164.81, 174.61, 196.00, 220.00, 246.94, 261.63, 293.66, 329.63, 349.23, 392.00, 440.00];
@@ -89,13 +90,13 @@ var CONFIG = {
       }
       return (cache[k] = buf);
     }
-    function pluck(freq, when, vol, pan) {
+    function pluck(freq, when, vol, pan, dest) {
       var src = ctx.createBufferSource(); src.buffer = pluckBuffer(freq);
       src.playbackRate.value = 1 + (Math.random() - 0.5) * 0.004;   // tiny detune
       var lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1400 + Math.random() * 600;
       var g = ctx.createGain(); g.gain.setValueAtTime(vol, when); g.gain.exponentialRampToValueAtTime(0.0001, when + 3.4);
       src.connect(lp); lp.connect(g);
-      if (ctx.createStereoPanner) { var p = ctx.createStereoPanner(); p.pan.value = pan || 0; g.connect(p); p.connect(bus); } else g.connect(bus);
+      if (ctx.createStereoPanner) { var p = ctx.createStereoPanner(); p.pan.value = pan || 0; g.connect(p); p.connect(dest || bus); } else g.connect(dest || bus);
       src.start(when); src.stop(when + 3.5);
     }
     function phrase() {
@@ -165,6 +166,41 @@ var CONFIG = {
         on = !on; try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (e) {}
         if (on) { if (init()) apply(); } else apply();
         return on;
+      },
+      cue: function () {
+        if (!on || document.hidden || !AC) return;
+        if (!ctx && !init()) return;
+        try {
+          if (ctx.state !== 'running') { ctx.resume(); apply(); }
+          var t = ctx.currentTime + 0.03, now = Date.now(), busy = now < cueUntil;
+          var lvl = busy ? 0.35 : 1;   // a cue while another plays is just a quiet flourish; cues never stack loudly
+          if (!busy) cueUntil = now + 6500;
+          var out = ctx.createGain(); out.gain.value = 0.9 * lvl; out.connect(ctx.destination);
+          var rv = ctx.createConvolver(); rv.buffer = impulse(2.5, 2.4); var rw = ctx.createGain(); rw.gain.value = 0.4; out.connect(rv); rv.connect(rw); rw.connect(ctx.destination);
+          // 1. rising lyre flourish while the gift flies
+          [293.66, 349.23, 440, 523.25, 587.33, 698.46].forEach(function (f, i) { pluck(f, t + i * 0.2, 0.32 * lvl, (i % 2 ? 0.3 : -0.3), out); });
+          if (busy) return;
+          // duck the background lyre, restore afterwards
+          var mv = CONFIG.MUSIC_VOLUME;
+          master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value, t);
+          master.gain.linearRampToValueAtTime(mv * 0.25, t + 0.3); master.gain.setValueAtTime(mv * 0.25, t + 6);
+          master.gain.linearRampToValueAtTime(mv, t + 7.5);
+          // 2. frame-drum thump on landing (~1.4 s)
+          var td = t + 1.4, o = ctx.createOscillator(), dg = ctx.createGain();
+          o.type = 'sine'; o.frequency.setValueAtTime(130, td); o.frequency.exponentialRampToValueAtTime(48, td + 0.35);
+          dg.gain.setValueAtTime(0.0001, td); dg.gain.exponentialRampToValueAtTime(0.9, td + 0.01); dg.gain.exponentialRampToValueAtTime(0.0001, td + 0.7);
+          o.connect(dg); dg.connect(out); o.start(td); o.stop(td + 0.75);
+          // 3. aulos-like reedy drone with vibrato
+          [146.83, 220].forEach(function (f, i) {
+            var r = ctx.createOscillator(); r.type = i ? 'square' : 'sawtooth'; r.frequency.value = f;
+            var lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.value = 5.2; lg.gain.value = f * 0.008; lfo.connect(lg); lg.connect(r.frequency);
+            var bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = f * 4; bp.Q.value = 3;
+            var g = ctx.createGain(), a = td + 0.1; g.gain.setValueAtTime(0.0001, a); g.gain.linearRampToValueAtTime(0.09, a + 0.8); g.gain.setValueAtTime(0.09, a + 3.6); g.gain.linearRampToValueAtTime(0.0001, a + 5);
+            r.connect(bp); bp.connect(g); g.connect(out); r.start(a); lfo.start(a); r.stop(a + 5.1); lfo.stop(a + 5.1);
+          });
+          // 4. bright resolving chord (D major) as the smoke rises
+          [293.66, 369.99, 440, 587.33].forEach(function (f, i) { pluck(f, t + 3 + i * 0.05, 0.3, (i - 1.5) * 0.25, out); pluck(f * 2, t + 3.1 + i * 0.05, 0.12, 0, out); });
+        } catch (e) {}
       },
       whoosh: function () {
         if (!ctx || !on || document.hidden) return;
@@ -276,6 +312,7 @@ var CONFIG = {
   function freshIntro() {
     idx = -1; renderLaurels(-1); content.innerHTML = '';
     say('Greetings, student of AMNE 151. I am the Pythia, priestess of Apollo at Delphi.\nBring me your idea for the Final Project, and I shall carry it to your TA for approval. A few questions, one at a time. Your Proposal is due Friday 23 October at 10 p.m., so do not tarry.', function () {
+      content.appendChild(el('p', { 'class': 'hint cal' }, CAL_HTML));
       var b = el('button', { type: 'button', 'class': 'btn primary', text: 'Approach the oracle' });
       b.addEventListener('click', function () { answers = {}; Music.start(); show(0); });
       var q = el('button', { type: 'button', 'class': 'btn', text: 'Not ready yet, but I have a question' });
@@ -454,6 +491,7 @@ var CONFIG = {
     say(line, function () {
       content.appendChild(el('p', { 'class': 'q-label', text: qOnly ? 'Your question has been carried to your TA, who will reply by email.' : 'Your TA will reply by email.', tabindex: '-1' }));
       content.appendChild(el('p', { 'class': 'hint' }, 'Questions in the meantime? Email your TA: ' + TA_EMAIL_HTML));
+      content.appendChild(el('p', { 'class': 'hint cal' }, CAL_HTML));
       content.appendChild(el('p', { 'class': 'hint', text: 'Keep a copy of your answers for your records:' }));
       content.appendChild(copyButton());
       var again = el('button', { type: 'button', 'class': 'linkish', text: 'Start over' });
@@ -467,61 +505,116 @@ var CONFIG = {
   (function () {
     var svg = $('pythia'), btns = document.querySelectorAll('.offering');
     if (!svg || !btns.length) return;
-    var LINES = { myrtle: 'Myrtle, sweet to the gods.', lamb: 'A fine lamb. The god is pleased.', ox: 'An ox! A hecatomb begins with one.' };
-    var live = $('offerSay'), bubble = $('offerBubble'), sayT = null, NS = 'http://www.w3.org/2000/svg';
-    function flameXY() {
+    // Verbatim quotes from public-domain translations of syllabus works (Butler 1898/1900; Evelyn-White 1914, Project Gutenberg).
+    var IL = 'Iliad 1 (trans. Butler)', OD9 = 'Odyssey 9 (trans. Butler)', OD11 = 'Odyssey 11 (trans. Butler)';
+    var LINES = {
+      myrtle: [
+        { q: '…sacrifice to the deathless gods purely and cleanly, and burn rich meats also, and at other times propitiate them with libations and incense', c: 'Hesiod, Works and Days 320\u2013341 (trans. Evelyn-White)' },
+        { q: '…let all the people build me a great temple and an altar below it', c: 'Homeric Hymn to Demeter 256\u2013274 (trans. Evelyn-White)' },
+        { q: '…pour an offering to the blessed gods who dwell on Olympus.', c: 'Homeric Hymn to Pythian Apollo 474\u2013501 (trans. Evelyn-White)' },
+        { q: 'If I have ever decked your temple with garlands, or burned your thigh-bones in fat of bulls or goats, grant my prayer', c: IL }
+      ],
+      lamb: [
+        { q: '…whether he will accept the savour of lambs and goats without blemish', c: IL },
+        { q: '…hymning him and chaunting the joyous paean, and the god took pleasure in their voices', c: IL },
+        { q: '…I sacrificed it on the sea shore, and burned its thigh bones to Jove, who is the lord of all.', c: OD9 },
+        { q: '…Teiresias should have a black sheep to himself, the best in all my flocks.', c: OD11 },
+        { q: 'Thus did he pray, and Apollo heard his prayer.', c: IL }
+      ],
+      ox: [
+        { q: '…the smoke with the savour of their sacrifice rose curling up towards heaven.', c: IL },
+        { q: '…hither they will always bring perfect hecatombs', c: 'Homeric Hymn to Pythian Apollo 244\u2013253 (trans. Evelyn-White)' },
+        { q: '…divided them into twelve portions distributed by lot, making each portion wholly honourable.', c: 'Homeric Hymn to Hermes 115\u2013137 (trans. Evelyn-White)' },
+        { q: '…so shall mortals ever sacrifice perfect hecatombs to you at your feasts each three years.', c: 'Homeric Hymn to Dionysus 10\u201312 (trans. Evelyn-White)' }
+      ]
+    };
+    var bag = {}, last = {};
+    function nextLine(kind) {
+      if (!bag[kind] || !bag[kind].length) {
+        var a = LINES[kind].slice();
+        for (var i = a.length - 1; i > 0; i--) { var k = Math.floor(Math.random() * (i + 1)), x = a[i]; a[i] = a[k]; a[k] = x; }
+        if (a[a.length - 1] === last[kind]) a.unshift(a.pop());   // no immediate repeat across reshuffles
+        bag[kind] = a;
+      }
+      return (last[kind] = bag[kind].pop());
+    }
+    var live = $('offerSay'), bubble = $('offerBubble'), sayT = null;
+    // clock hook: screenshots may set window.__offerClock to freeze time
+    function now() { return window.__offerClock ? window.__offerClock() : performance.now(); }
+    function geo() {
       var r = svg.getBoundingClientRect();
-      return { x: r.left + r.width * 200 / 400, y: r.top + r.height * 318 / 420, s: r.width / 400 };
+      return { x: r.left + r.width * 200 / 400, y: r.top + r.height * 318 / 420, top: r.top, s: r.width / 400 };
     }
     function retrigger(node, cls) { if (!node) return; node.classList.remove(cls); void node.getBoundingClientRect(); node.classList.add(cls); setTimeout(function () { node.classList.remove(cls); }, 1700); }
-    function smoke(count) {
-      var g = svg;
-      for (var i = 0; i < count; i++) {
-        var c = document.createElementNS(NS, 'circle');
-        c.setAttribute('cx', 192 + Math.random() * 16); c.setAttribute('cy', reduced ? 290 - i * 14 : 305);
-        c.setAttribute('r', 10 + Math.random() * 8); c.setAttribute('fill', i % 2 ? '#8C867A' : '#A8A296');
-        c.setAttribute('class', 'smoke-puff');
-        c.style.setProperty('--dx', (Math.random() * 50 - 25) + 'px');
-        c.style.animationDelay = (i * 0.18) + 's';
-        g.appendChild(c);
-        (function (c) { setTimeout(function () { if (c.parentNode) c.parentNode.removeChild(c); }, reduced ? 1200 : 4200); })(c);
-      }
-    }
     function speak(kind) {
-      var line = LINES[kind] || '';
-      live.textContent = ''; setTimeout(function () { live.textContent = line; }, 50);
-      bubble.textContent = '\u201C' + line + '\u201D'; bubble.classList.add('show');
-      clearTimeout(sayT); sayT = setTimeout(function () { bubble.classList.remove('show'); }, 3200);
+      var l = nextLine(kind);
+      live.textContent = ''; setTimeout(function () { live.textContent = '\u201C' + l.q + '\u201D \u2014 ' + l.c; }, 50);
+      bubble.textContent = '\u201C' + l.q + '\u201D';
+      var c = document.createElement('cite'); c.textContent = '\u2014 ' + l.c; bubble.appendChild(c);
+      bubble.classList.add('show');
+      clearTimeout(sayT); sayT = setTimeout(function () { bubble.classList.remove('show'); }, 6000);
+    }
+    function loop(dur, step, done) {
+      var t0 = now();
+      (function f() { var p = Math.min(1, Math.max(0, (now() - t0) / dur)); step(p); if (p < 1) requestAnimationFrame(f); else if (done) done(); })();
+    }
+    function plume() {
+      var g = geo(), N = reduced ? 3 : 10, h = g.y - g.top, rise = h + 120 * Math.max(.7, g.s * 2.5);
+      for (var i = 0; i < N; i++) (function (i) {
+        var d = document.createElement('div'); d.className = 'offer-smoke'; d.setAttribute('aria-hidden', 'true');
+        var sz = (26 + Math.random() * 14) * Math.max(.6, g.s * 2.2);
+        d.style.width = d.style.height = sz + 'px'; d.style.left = (g.x - sz / 2) + 'px'; d.style.top = (g.y - sz / 2) + 'px';
+        document.body.appendChild(d);
+        if (reduced) { d.style.opacity = '.4'; d.style.transform = 'translate(' + (i - 1) * sz * .5 + 'px,' + (-i * sz * .4 - 10) + 'px)'; setTimeout(function () { d.remove(); }, 1400); return; }
+        d.style.opacity = '0';
+        var drift = (Math.random() * 2 - 1) * 40, ph = Math.random() * 6;
+        setTimeout(function () {
+          loop(2600 + Math.random() * 600, function (p) {
+            var e = 1 - Math.pow(1 - p, 2.2);                    // fast start, slows as it climbs
+            var y = -rise * e, x = drift * p + Math.sin(ph + p * 5) * 14 * p;
+            var face = (-y > h * 0.35 && -y < h * 0.85) ? 0.45 : 1;   // lighter over her head and face
+            d.style.opacity = (Math.min(1, p * 8) * (1 - p * .85) * 0.6 * face).toFixed(3);
+            d.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + (0.6 + 3.4 * p) + ')';
+          }, function () { d.remove(); });
+        }, i * 160);
+      })(i);
     }
     function burn() {
       retrigger(svg.querySelector('.flame'), 'flare'); retrigger(svg.querySelector('.glow'), 'flare');
-      smoke(reduced ? 3 : 7); Music.whoosh();
+      plume();
     }
     function offer(btn) {
       if (btn.classList.contains('gone')) return;
       var kind = btn.getAttribute('data-offer');
-      var r = btn.getBoundingClientRect(), f = flameXY();
+      var r = btn.getBoundingClientRect(), g = geo();
       if (document.activeElement === btn) { var nxt = Array.prototype.filter.call(btns, function (b) { return b !== btn && !b.classList.contains('gone'); })[0]; if (nxt) nxt.focus(); }
       btn.classList.add('gone');
-      speak(kind);
-      setTimeout(function () { btn.classList.remove('gone'); btn.classList.add('back'); setTimeout(function () { btn.classList.remove('back'); }, 700); }, reduced ? 2500 : 4000);
-      if (reduced || !Element.prototype.animate) { burn(); return; }
+      speak(kind); Music.cue();
+      setTimeout(function () { btn.classList.remove('gone'); btn.classList.add('back'); setTimeout(function () { btn.classList.remove('back'); }, 700); }, reduced ? 2500 : 4500);
+      if (reduced) { burn(); return; }
       var fly = document.createElement('div'); fly.className = 'offer-fly'; fly.setAttribute('aria-hidden', 'true');
       fly.innerHTML = btn.querySelector('svg').outerHTML;
-      fly.style.left = r.left + 'px'; fly.style.top = r.top + 'px'; fly.style.width = r.width + 'px'; fly.style.height = r.height + 'px';
+      var w = r.width, x0 = r.left + w / 2, y0 = r.top + r.height / 2, x2 = g.x, y2 = g.y - w * 0.1;
+      var peak = Math.min(y0, y2) - Math.max(80, 230 * g.s);       // apex well above both ends
+      var cx = (x0 + x2) / 2, cy = 2 * peak - (y0 + y2) / 2;       // quadratic Bezier whose apex is `peak`
+      fly.style.left = '0px'; fly.style.top = '0px'; fly.style.width = w + 'px'; fly.style.height = w + 'px';
       document.body.appendChild(fly);
-      var dx = f.x - (r.left + r.width / 2), dy = f.y - (r.top + r.height / 2), lift = -Math.max(60, 90 * f.s * 2);
-      var frames = [];
-      for (var i = 0; i <= 10; i++) {
-        var t = i / 10, x = dx * t, y = dy * t + lift * 4 * t * (1 - t);
-        frames.push({ transform: 'translate(' + x + 'px,' + y + 'px) rotate(' + (t * 200) + 'deg) scale(' + (1 - 0.35 * t) + ')', offset: t * 0.6 });
-      }
-      frames.push({ transform: 'translate(' + dx + 'px,' + (dy - 6) + 'px) rotate(220deg) scale(.5)', filter: 'brightness(.35) sepia(1)', opacity: 0.8, offset: 0.8 });
-      frames.push({ transform: 'translate(' + dx + 'px,' + (dy - 14) + 'px) rotate(240deg) scale(.05)', filter: 'brightness(0)', opacity: 0, offset: 1 });
-      frames[0].filter = 'brightness(1) sepia(0)'; frames[0].opacity = 1;
-      var anim = fly.animate(frames, { duration: 1500, easing: 'linear' });
-      setTimeout(burn, 900);
-      anim.onfinish = function () { if (fly.parentNode) fly.parentNode.removeChild(fly); };
+      var FLY = 1400, BURN = 900, TOT = FLY + BURN, burned = false;
+      loop(TOT, function (p) {
+        var ms = p * TOT, x, y, sc, rot, f = '', op = 1;
+        if (ms < FLY) {
+          var u = ms / FLY; u = u < .5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;   // easeInOutQuad
+          var a = 1 - u; x = a * a * x0 + 2 * a * u * cx + u * u * x2; y = a * a * y0 + 2 * a * u * cy + u * u * y2;
+          sc = 1 - 0.3 * u; rot = Math.sin(u * Math.PI) * 25 + u * 15;
+        } else {
+          var b = (ms - FLY) / BURN;
+          if (!burned) { burned = true; burn(); }
+          x = x2; y = y2 - 6 * b; sc = 0.7 * (1 - 0.9 * b); rot = 15;
+          f = 'brightness(' + (1 - 0.85 * b).toFixed(2) + ') sepia(' + b.toFixed(2) + ')'; op = 1 - b;
+        }
+        fly.style.transform = 'translate(' + (x - w / 2) + 'px,' + (y - w / 2) + 'px) rotate(' + rot + 'deg) scale(' + sc + ')';
+        fly.style.filter = f; fly.style.opacity = op;
+      }, function () { fly.remove(); });
     }
     Array.prototype.forEach.call(btns, function (b) { b.addEventListener('click', function (e) { e.preventDefault(); offer(b); }); });
   })();
