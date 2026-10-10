@@ -22,9 +22,9 @@ Files: `index.html`, `style.css`, `game.js` (all artwork is drawn in code, so th
 - Keep the question wording and tutorial choices exactly as the script made them. If you edit a choice in the form, edit it in `game.js` too.
 
 ## 3. Test once
-Open `index.html` (double-click it), go through the questions with fake answers, and Submit. Then check the response sheet. If no row appears, re-check the entry numbers and the two settings above.
+Open `index.html` (double-click it), go through the questions with fake answers, and press **Transmit to the oracle**. Then check the response sheet. If no row appears, re-check the entry numbers and the two settings above.
 Note: Google doesn't let the page see whether the form accepted the answer, so the game always shows the "success" screen. That's why this test matters. Delete the test row afterwards.
-Until CONFIG is filled in, Submit just tells students to use **Copy my answers** and email you instead.
+Until CONFIG is filled in, the Transmit button just tells students to use **Copy my answers** and send them to you through Canvas instead.
 
 ## 4. Put it online with GitHub Pages
 1. Make a free account at https://github.com, then click **New repository**. Give it a name (e.g. `amne151-oracle`), make it **Public**, and create it.
@@ -36,7 +36,13 @@ Until CONFIG is filled in, Submit just tells students to use **Copy my answers**
 Wording lives in `game.js` (the `QUESTIONS` list and the `say(...)` lines). Edit, then upload the file to GitHub again.
 
 ## Saved progress
-Answers are saved automatically in the student's own browser as they type, so if they close the tab they can pick up where they left off (the Pythia offers **Continue** or **Start over**). Nothing is sent anywhere until they press Submit, and the saved copy is erased after a successful submit. It only works on the same device and browser.
+Answers are saved automatically in the student's own browser as they type, so if they close the tab they can pick up where they left off (the Pythia offers **Continue** or **Start over**). Nothing is sent anywhere until they press Transmit, and the saved copy is erased after a successful transmission. It only works on the same device and browser.
 
 ## Music
 Soft lyre-like music is created live by the browser (no audio files). It starts only after a student clicks **Approach the oracle**, pauses when the tab is hidden, and the **Music on/off** button at the top right turns it off (the browser remembers each student's choice). To have it start muted for everyone, open `game.js` and change `MUSIC_DEFAULT_ON: true` to `MUSIC_DEFAULT_ON: false`. `MUSIC_VOLUME` sets the loudness (0.15 is quiet).
+
+## Project Proposal Guide
+`info.html` is a separate page with the Project Proposal notes and bibliography how-to. It is linked from the intro screen and the footer. Upload it to GitHub along with the other files.
+
+## "Not ready yet, but I have a question"
+A second button on the intro starts a short path: email, name, tutorial, then **What is your question?** It is sent to the same Google Form. The format and idea answers are filled in automatically with "(Question only, no project idea yet)" so Google accepts the response. To switch it on, add a paragraph question "What is your question?" to the form, get its entry number (pre-filled link, as in step 2), and put it in `game.js` as `question: 'entry.NNNN'`. Until then, this path's Transmit button tells students to copy their answers and send them to you through Canvas. The main idea path is not affected.

@@ -11,7 +11,8 @@ var CONFIG = {
     fullName:     'entry.410167239',
     tutorial:     'entry.876568848',
     format:       'entry.1010395158',
-    idea:         'entry.1443301633'
+    idea:         'entry.1443301633',
+    question:     'entry.QUESTION_ID_TBD'   // "What is your question?" (question-only path)
   },
   TYPE_SPEED_MS: 22,
   // Background lyre music (made in the browser, no audio files). Set to false to start muted.
@@ -25,17 +26,20 @@ var CONFIG = {
   var QUESTIONS = [
     { key: 'email', type: 'email', required: true, label: 'Email address',
       flavour: 'Welcome, traveller. Before I give you the answer of Apollo, I must know where to send it.',
-      hint: 'Your TA will reply to this address. Your UBC student email is best.' },
+      hint: 'Your UBC student email is best.' },
     { key: 'fullName', type: 'text', required: true, label: 'Name (If group: names of all group members)',
       flavour: 'Every supplicant at Delphi gives a name. What is yours? If you come as a company, name them all.' },
     { key: 'tutorial', type: 'radio', required: true, label: 'Which tutorial are you in?',
       options: ['11 a.m.', '12 p.m.', '1 p.m.'],
       flavour: 'The god keeps careful records. At which hour do you gather with your fellows?' },
-    { key: 'idea', type: 'textarea', required: true, label: 'Project idea in 2–3 sentences. Include the primary source(s) that inspires it.',
+    { key: 'idea', mode: 'main', type: 'textarea', required: true, label: 'Project idea in 2–3 sentences. Include the primary source(s) that inspires it.',
       flavour: 'Now tell me what you mean to make. But hear me well: the god accepts no offering that is not rooted in the ancient sources themselves. Name the primary source that inspires you.' },
-    { key: 'format', type: 'text', required: true, label: 'What will your finished project look like?',
+    { key: 'format', mode: 'main', type: 'text', required: true, label: 'What will your finished project look like?',
       placeholder: 'e.g. a short story, a painting, a board game, a recipe…',
-      flavour: 'Last: offerings came to Delphi in many shapes, bronze tripods, painted vases, hymns sung to the god. What shape will yours take?' }
+      flavour: 'Last: offerings came to Delphi in many shapes, bronze tripods, painted vases, hymns sung to the god. What shape will yours take?' },
+    { key: 'question', mode: 'question', type: 'textarea', required: true, label: 'What is your question?',
+      flavour: 'Even the wisest seekers come with questions first. Speak it plainly, and I shall carry it to your TA.',
+      hint: 'Ask anything about the Final Project. You can send your idea later.' }
   ];
 
   var answers = {};
@@ -50,7 +54,9 @@ var CONFIG = {
     if (html) e.innerHTML = html;
     return e;
   }
-  function visible() { return QUESTIONS.filter(function (q) { return !q.showIf || q.showIf(answers); }); }
+  var QUESTION_ONLY = '(Question only, no project idea yet)';
+  function mode() { return answers._mode === 'question' ? 'question' : 'main'; }
+  function visible() { var m = mode(); return QUESTIONS.filter(function (q) { return (!q.mode || q.mode === m) && (!q.showIf || q.showIf(answers)); }); }
 
 
   /* ---------- music: procedural plucked lyre (Web Audio, Karplus-Strong) ---------- */
@@ -218,6 +224,7 @@ var CONFIG = {
 
   /* ---------- screens ---------- */
   /* ---------- save & resume (this browser only) ---------- */
+  var CANVAS_LINK_HTML = '<a href="https://canvas.ubc.ca/conversations" target="_blank" rel="noopener">Canvas Inbox (opens in a new tab)</a>';
   var DRAFT_KEY = 'amne151-oracle-draft-v1', saveTimer = null;
   function saveDraft(where) {
     try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ v: 1, answers: answers, at: where, t: Date.now() })); } catch (e) {}
@@ -225,7 +232,7 @@ var CONFIG = {
   function loadDraft() {
     try {
       var d = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
-      if (d && d.v === 1 && d.answers && Object.keys(d.answers).some(function (k) { return d.answers[k]; })) return d;
+      if (d && d.v === 1 && d.answers && Object.keys(d.answers).some(function (k) { return k !== '_mode' && d.answers[k]; })) return d;
     } catch (e) {}
     return null;
   }
@@ -258,8 +265,11 @@ var CONFIG = {
     idx = -1; renderLaurels(-1); content.innerHTML = '';
     say('Greetings, student of AMNE 151. I am the Pythia, priestess of Apollo at Delphi.\nBring me your idea for the Final Project, and I shall carry it to your TA for approval. A few questions, one at a time. Your Proposal is due Friday 23 October at 10 p.m., so do not tarry.', function () {
       var b = el('button', { type: 'button', 'class': 'btn primary', text: 'Approach the oracle' });
-      b.addEventListener('click', function () { Music.start(); show(0); });
-      var nav = el('div', { 'class': 'nav' }); nav.appendChild(b); content.appendChild(nav);
+      b.addEventListener('click', function () { answers = {}; Music.start(); show(0); });
+      var q = el('button', { type: 'button', 'class': 'btn', text: 'Not ready yet, but I have a question' });
+      q.addEventListener('click', function () { answers = { _mode: 'question' }; Music.start(); show(0); });
+      var nav = el('div', { 'class': 'nav' }); nav.appendChild(b); nav.appendChild(q); content.appendChild(nav);
+      content.appendChild(el('p', { 'class': 'guide-link' }, 'New here? <a href="info.html">Read the Project Proposal Guide first</a>. Your progress is saved if you step away.'));
       b.focus();
     });
   }
@@ -340,7 +350,7 @@ var CONFIG = {
     return answers[q.key] || '—';
   }
   function asText() {
-    return 'AMNE 151 Final Project idea\n\n' + visible().map(function (q) { return q.label + '\n' + display(q); }).join('\n\n');
+    return (mode() === 'question' ? 'AMNE 151 Final Project question' : 'AMNE 151 Final Project idea') + '\n\n' + visible().map(function (q) { return q.label + '\n' + display(q); }).join('\n\n');
   }
 
   function copyButton() {
@@ -348,7 +358,7 @@ var CONFIG = {
     var status = el('span', { role: 'status', 'class': 'hint' });
     b.addEventListener('click', function () {
       var t = asText();
-      var ok = function () { status.textContent = ' Copied. Paste it into an email to your TA if needed.'; };
+      var ok = function () { status.textContent = ' Copied. Paste it into a Canvas message to your TA if needed.'; };
       if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(ok, function () { fallbackCopy(t) && ok(); });
       else if (fallbackCopy(t)) ok(); else status.textContent = ' Could not copy automatically; please select the text above.';
     });
@@ -365,7 +375,7 @@ var CONFIG = {
     var qs = visible(); renderLaurels(qs.length); content.innerHTML = '';
     saveDraft('review');
     say('Let us look upon your words once more before I carry them to the god. Change anything you wish.', function () {
-      content.appendChild(el('h2', { 'class': 'q-label', text: 'Review your answers', tabindex: '-1' }));
+      content.appendChild(el('h2', { 'class': 'q-label', text: 'Review your answers, then transmit', tabindex: '-1' }));
       var dl = el('dl', { 'class': 'review' });
       qs.forEach(function (q, i) {
         var dt = el('dt'); dt.appendChild(el('span', { text: q.label }));
@@ -378,7 +388,7 @@ var CONFIG = {
       var nav = el('div', { 'class': 'nav' });
       var back = el('button', { type: 'button', 'class': 'btn', text: 'Back' });
       back.addEventListener('click', function () { show(qs.length - 1); });
-      var sub = el('button', { type: 'button', 'class': 'btn primary', text: 'Submit to the oracle' });
+      var sub = el('button', { type: 'button', 'class': 'btn primary', text: 'Transmit to the oracle' });
       sub.addEventListener('click', function () { submit(sub, note); });
       nav.appendChild(back); nav.appendChild(sub);
       content.appendChild(nav); content.appendChild(copyButton()); content.appendChild(note);
@@ -389,36 +399,49 @@ var CONFIG = {
 
   function configured() {
     if (/PASTE_FORM_ID_HERE|<ID>/.test(CONFIG.FORM_ACTION_URL) || !/\/formResponse$/.test(CONFIG.FORM_ACTION_URL)) return false;
-    for (var k in CONFIG.ENTRY) { if (k !== 'email' && /entry\.0000000/.test(CONFIG.ENTRY[k])) return false; }
+    var keys = ['fullName', 'tutorial', 'format', 'idea'];   // main path; the question entry is checked separately
+    for (var i = 0; i < keys.length; i++) { if (!CONFIG.ENTRY[keys[i]] || /entry\.0000000/.test(CONFIG.ENTRY[keys[i]])) return false; }
+    if (mode() === 'question' && !/^entry\.\d+$/.test(CONFIG.ENTRY.question || '')) return false;
     return true;
   }
 
   function submit(btn, note) {
     if (!configured()) {
       note.hidden = false;
-      note.textContent = 'The oracle\'s messenger has not been set up yet, so this answer cannot be sent automatically. Please use "Copy my answers" and email them to your TA (or use the Google Form link on Canvas).';
+      note.innerHTML = 'The oracle\'s messenger has not been set up yet, so this answer cannot be transmitted automatically. Use "Copy my answers" and send them to your TA through ' + CANVAS_LINK_HTML + '.';
       return;
     }
     var p = new URLSearchParams(), E = CONFIG.ENTRY;
     p.append(E.email, answers.email);
     p.append(E.fullName, answers.fullName);
     p.append(E.tutorial, answers.tutorial);
-    p.append(E.format, answers.format);
-    p.append(E.idea, answers.idea);
+    if (mode() === 'question') {
+      p.append(E.format, QUESTION_ONLY);
+      p.append(E.idea, QUESTION_ONLY);
+      p.append(E.question, answers.question);
+    } else {
+      p.append(E.format, answers.format);
+      p.append(E.idea, answers.idea);
+    }
     btn.disabled = true; btn.textContent = 'The vapours rise…';
     fetch(CONFIG.FORM_ACTION_URL, { method: 'POST', mode: 'no-cors', body: p })
       .then(function () { clearTimeout(saveTimer); clearDraft(); ending(); })   // no-cors: an opaque reply is the best confirmation we get
       .catch(function () {
-        btn.disabled = false; btn.textContent = 'Try again'; note.hidden = false;
-        note.textContent = 'The message could not be sent (are you offline?). Try again, or use "Copy my answers" and email your TA.';
+        btn.disabled = false; btn.textContent = 'Try transmitting again'; note.hidden = false;
+        note.innerHTML = 'Your answers could not be transmitted (are you offline?). Try again, or use "Copy my answers" and send them to your TA through ' + CANVAS_LINK_HTML + '.';
       });
   }
 
   function ending() {
     content.innerHTML = '';
     var name = (answers.fullName || '').split(' ')[0];
-    say('It is done' + (name ? ', ' + name : '') + '. Your question has passed through the vapours to your TA.\nThe god has spoken: "Seek the sources, read closely, and make something worthy of the Muses." Remember, your Proposal is due Friday 23 October at 10 p.m.', function () {
-      content.appendChild(el('p', { 'class': 'q-label', text: 'Your TA will reply by email.', tabindex: '-1' }));
+    var qOnly = mode() === 'question';
+    var line = qOnly
+      ? 'It is done' + (name ? ', ' + name : '') + '. Your question has been carried to your TA, who will reply through Canvas.\nReturn to me when your idea is ripe. Remember, your Proposal is due Friday 23 October at 10 p.m.'
+      : 'It is done' + (name ? ', ' + name : '') + '. Your idea has been transmitted through the vapours to your TA.\nThe god has spoken: "Seek the sources, read closely, and make something worthy of the Muses." Remember, your Proposal is due Friday 23 October at 10 p.m.';
+    say(line, function () {
+      content.appendChild(el('p', { 'class': 'q-label', text: qOnly ? 'Your question has been carried to your TA, who will reply through Canvas.' : 'Your TA will reply through Canvas.', tabindex: '-1' }));
+      content.appendChild(el('p', { 'class': 'hint' }, 'Questions in the meantime? Message your TA in ' + CANVAS_LINK_HTML + '.'));
       content.appendChild(el('p', { 'class': 'hint', text: 'Keep a copy of your answers for your records:' }));
       content.appendChild(copyButton());
       var again = el('button', { type: 'button', 'class': 'linkish', text: 'Start over' });
