@@ -8,7 +8,7 @@ DTSTAMP:20261010T040000Z
 DTSTART:20261017T050000Z
 DTEND:20261017T051500Z
 SUMMARY:AMNE 151 Final Project idea due
-DESCRIPTION:Send your idea to your TA by 10 p.m. at the very latest. Last minute ideas will still get comments\, but lateness may affect your mark.
+DESCRIPTION:Send your idea to your TA by 10 p.m., the sooner the better.
 BEGIN:VALARM
 TRIGGER:-P1D
 ACTION:DISPLAY
