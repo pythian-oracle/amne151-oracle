@@ -44,6 +44,7 @@ var CONFIG = {
 
   var answers = {};
   var idx = -1, typingTimer = null, fullText = '', afterTyping = null;
+  var IDEA_NOTE = 'Send your idea by <strong>Tue 20 Oct, 10 p.m.</strong> Late ideas will still get comments, but lateness will affect your mark.';
   var CAL_HTML = 'Add to calendar: <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text=AMNE%20151%20Final%20Project%20Proposal%20due&amp;dates=20261023T220000/20261023T221500&amp;ctz=America/Vancouver&amp;details=Submit%20on%20Canvas%20by%2010%20p.m." target="_blank" rel="noopener">Google</a> &middot; <a href="amne151-proposal-due.ics" download>Apple/Outlook (.ics)</a>';
   var $ = function (id) { return document.getElementById(id); };
   var speech = $('speech'), content = $('content'), svg = $('pythia'), laurelsEl = $('laurels'), skipBtn = $('skipType');
@@ -312,6 +313,7 @@ var CONFIG = {
   function freshIntro() {
     idx = -1; renderLaurels(-1); content.innerHTML = '';
     say('Greetings, student of AMNE 151. I am the Pythia, priestess of Apollo at Delphi.\nBring me your idea for the Final Project, and I shall carry it to your TA for approval. A few questions, one at a time. Your Proposal is due Friday 23 October at 10 p.m., so do not tarry.', function () {
+      content.appendChild(el('p', { 'class': 'notice idea-note' }, IDEA_NOTE));
       content.appendChild(el('p', { 'class': 'hint cal' }, CAL_HTML));
       var b = el('button', { type: 'button', 'class': 'btn primary', text: 'Approach the oracle' });
       b.addEventListener('click', function () { answers = {}; Music.start(); show(0); });
@@ -433,6 +435,7 @@ var CONFIG = {
         dt.appendChild(edit); dl.appendChild(dt); dl.appendChild(el('dd', { text: display(q) }));
       });
       content.appendChild(dl);
+      content.appendChild(el('p', { 'class': 'notice idea-note' }, IDEA_NOTE));
       var note = el('div', { 'class': 'notice', role: 'status' });
       var nav = el('div', { 'class': 'nav' });
       var back = el('button', { type: 'button', 'class': 'btn', text: 'Back' });

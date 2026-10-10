@@ -1,0 +1,18 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//AMNE151//Oracle//EN
+CALSCALE:GREGORIAN
+BEGIN:VEVENT
+UID:amne151-idea-due-20261020@pythian-oracle.github.io
+DTSTAMP:20261010T040000Z
+DTSTART:20261021T050000Z
+DTEND:20261021T051500Z
+SUMMARY:AMNE 151 Final Project idea due
+DESCRIPTION:Send your idea to your TA by 10 p.m.. Late ideas will still get comments\, but lateness will affect your mark.
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:AMNE 151 project idea due tomorrow
+END:VALARM
+END:VEVENT
+END:VCALENDAR
