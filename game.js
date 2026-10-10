@@ -388,7 +388,7 @@ var CONFIG = {
   }
 
   function configured() {
-    if (/1FAIpQLSeT-DgBismRYpqYfUzsHd3p2uETj49aEoPgtGJbFdaa4B7PpA|<ID>/.test(CONFIG.FORM_ACTION_URL) || !/\/formResponse$/.test(CONFIG.FORM_ACTION_URL)) return false;
+    if (/PASTE_FORM_ID_HERE|<ID>/.test(CONFIG.FORM_ACTION_URL) || !/\/formResponse$/.test(CONFIG.FORM_ACTION_URL)) return false;
     for (var k in CONFIG.ENTRY) { if (k !== 'email' && /entry\.0000000/.test(CONFIG.ENTRY[k])) return false; }
     return true;
   }
