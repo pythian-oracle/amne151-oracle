@@ -38,7 +38,7 @@ var CONFIG = {
       placeholder: 'e.g. a short story, a painting, a board game, a recipe…',
       flavour: 'Last: offerings came to Delphi in many shapes, bronze tripods, painted vases, hymns sung to the god. What shape will yours take?' },
     { key: 'question', mode: 'question', type: 'textarea', required: true, label: 'What is your question?',
-      flavour: 'Even the wisest seekers come with questions first. Speak it plainly, and I shall carry it into the temple.',
+      flavour: 'Even the wisest seekers come with questions first. Speak it plainly, and I shall carry it into the temple cella.',
       hint: 'Ask anything about the Final Project. You can send your idea later.' }
   ];
 
