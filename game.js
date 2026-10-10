@@ -33,9 +33,9 @@ var CONFIG = {
       flavour: 'The god keeps careful records. At which hour do you gather with your fellows?' },
     { key: 'idea', type: 'textarea', required: true, label: 'Your project idea, even if it is only a beginning. If an ancient (primary) source is sparking it, name it.',
       placeholder: 'e.g. I keep coming back to the myth of Persephone… maybe something about the Odyssey’s Sirens…',
-      hint: 'A hunch, a myth you keep returning to, or a half-formed thought is welcome. A sentence or two is plenty; Teresia will help you shape it.',
+      hint: 'A hunch, a myth you keep returning to, or a half-formed thought is welcome. A sentence or two is plenty; your oracle will help you shape it.',
       requiredMsg: 'Even a single half-formed thought will do. The oracle only needs a spark to begin.',
-      flavour: 'Now tell me what stirs in you. It need not be finished: the god welcomes a hunch, a myth that will not leave you, a thought only half-formed. Your offering will grow from the ancient sources, and Teresia will help you find them.' },
+      flavour: 'Now tell me what stirs in you. It need not be finished: the god welcomes a hunch, a myth that will not leave you, a thought only half-formed. Your offering will grow from the ancient sources, and your oracle will help you find them.' },
     { key: 'format', type: 'text', required: true, label: 'What shape might your finished project take?',
       placeholder: 'e.g. maybe a short story, a painting, a board game, a recipe… or “not sure yet”',
       hint: 'Your best guess is enough. “Not sure yet” or two possibilities is fine; you can change your mind later.',
@@ -478,7 +478,7 @@ var CONFIG = {
   function ending() {
     content.innerHTML = '';
     var name = (answers.fullName || '').split(' ')[0];
-    var line = 'It is done' + (name ? ', ' + name : '') + '. Your idea has been transmitted through the vapours to Teresia.\nThe god has spoken: "Seek the sources, read closely, and make something worthy of the Muses." Remember, your Proposal is due Friday 23 October at 10 p.m.';
+    var line = 'It is done' + (name ? ', ' + name : '') + '. Your idea has been transmitted through the vapours to your oracle.\nThe god has spoken: "Seek the sources, read closely, and make something worthy of the Muses." Remember, your Proposal is due Friday 23 October at 10 p.m.';
     say(line, function () {
       content.appendChild(el('p', { 'class': 'q-label', text: 'Teresia will reply by email.', tabindex: '-1' }));
       content.appendChild(el('p', { 'class': 'hint', text: 'Keep a copy of your answers for your records:' }));
