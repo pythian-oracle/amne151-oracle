@@ -515,7 +515,7 @@ var CONFIG = {
     var svg = $('pythia'), btns = document.querySelectorAll('.offering');
     if (!svg || !btns.length) return;
     // Verbatim quotes from public-domain translations of syllabus works (Butler 1898/1900; Evelyn-White 1914, Project Gutenberg).
-    // Full Chicago (17th ed.) first-note citations; see the bibliography in info.html.
+    // Full Chicago (17th ed.) first-note citations.
     var EW = ', in <em>Hesiod, the Homeric Hymns, and Homerica</em>, trans. Hugh G. Evelyn-White (London: William Heinemann, 1914), ';
     var GB348 = '.';
     function il(bk) { return 'Homer, <em>The Iliad</em>, trans. Samuel Butler (London: Longmans, Green, 1898), ' + bk + '.'; }
