@@ -26,18 +26,16 @@ var CONFIG = {
     { key: 'email', type: 'email', required: true, label: 'Email address',
       flavour: 'Welcome, traveller. Before I give you the answer of Apollo, I must know where to send it.',
       hint: 'Your TA will reply to this address. Your UBC student email is best.' },
-    { key: 'fullName', type: 'text', required: true, label: 'Full name',
-      flavour: 'Every supplicant at Delphi gives a name. What is yours?' },
+    { key: 'fullName', type: 'text', required: true, label: 'Name (If group: names of all group members)',
+      flavour: 'Every supplicant at Delphi gives a name. What is yours? If you come as a company, name them all.' },
     { key: 'tutorial', type: 'radio', required: true, label: 'Which tutorial are you in?',
       options: ['11 a.m.', '12 p.m.', '1 p.m.'],
       flavour: 'The god keeps careful records. At which hour do you gather with your fellows?' },
-    { key: 'format', type: 'text', required: true, label: 'What format will your project take?',
+    { key: 'idea', type: 'textarea', required: true, label: 'Project idea in 2–3 sentences. Include the primary source(s) that inspires it.',
+      flavour: 'Now tell me what you mean to make. But hear me well: the god accepts no offering that is not rooted in the ancient sources themselves. Name the primary source that inspires you.' },
+    { key: 'format', type: 'text', required: true, label: 'What will your finished project look like?',
       placeholder: 'e.g. a short story, a painting, a board game, a recipe…',
-      flavour: 'Offerings came to Delphi in many shapes: bronze tripods, painted vases, hymns sung to the god. What shape will yours take?',
-      hint: 'A few words is enough.' },
-    { key: 'idea', type: 'textarea', required: true, label: 'What is your project idea?',
-      flavour: 'Last, and most important: tell me what you mean to make. But hear me well. The god accepts no offering that is not rooted in the ancient sources themselves. Your project must engage specific primary sources of ancient myth (Homer, Hesiod, the tragedians, Ovid, and the like), not modern retellings alone.',
-      hint: '2–3 sentences: what you will make, and which myth(s) and primary source(s) it draws on.' }
+      flavour: 'Last: offerings came to Delphi in many shapes, bronze tripods, painted vases, hymns sung to the god. What shape will yours take?' }
   ];
 
   var answers = {};
