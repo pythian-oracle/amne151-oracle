@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Citation Helper · AMNE 151</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#maker">Skip to the citation maker</a>
+<header class="top">
+  <p class="course">AMNE 151 · Greek &amp; Roman Mythology</p>
+  <h1>Citation Helper</h1>
+  <p class="sub">Chicago style (17th ed.) bibliography entries, following the Project Proposal Guide</p>
+</header>
+<p class="backlink"><a href="index.html">← Back to the oracle</a> · <a href="info.html">Project Proposal Guide</a></p>
+<main class="doc">
+  <p class="lede-plain">Fill in the pieces and the helper puts them in the right order, with italics and punctuation. It runs entirely in your browser and follows simple rules, so <strong>always check the result</strong> against the examples in the <a href="info.html#how-to">Project Proposal Guide</a>.</p>
+
+  <h2 id="maker">Make a citation</h2>
+  <form id="cform" class="cite-form">
+    <div class="cfield wide">
+      <label for="ctype">Type of source</label>
+      <select id="ctype"></select>
+    </div>
+    <div id="cfields" class="cfields"></div>
+    <div class="nav">
+      <button type="button" class="btn" id="cexample">Fill example</button>
+      <button type="submit" class="btn primary">Make citation</button>
+    </div>
+  </form>
+  <h3>Your citation</h3>
+  <div class="cite-out" id="cout" aria-live="polite"></div>
+  <p class="cite-ann" id="cann"></p>
+  <p><button type="button" class="btn" id="ccopy">Copy citation</button> <span id="cstatus" class="hint" role="status"></span></p>
+
+  <h2 id="fixer">Fix a pasted citation</h2>
+  <p>Paste a citation from the UBC Library catalogue, Google Scholar, or bibliography software. The helper fixes capitalization, italics, quotation marks, repeated places, and volume clutter, and tells you what it changed and what it can't know.</p>
+  <form id="xform" class="cite-form">
+    <div class="cfield wide">
+      <label for="xin">Pasted citation</label>
+      <textarea id="xin" rows="4"></textarea>
+    </div>
+    <p class="hint">Try one of the guide's ❌ examples:
+      <button type="button" class="linkish" data-bad="Braswell, Bruce Karl. A Commentary on the Fourth Pythian Ode of Pindar. Vol. Bd. 14.;Bd. 14;. New York;Berlin;: De Gruyter, 1988.">Book</button> ·
+      <button type="button" class="linkish" data-bad='Smith, Roland RR. "Pindar, athletes, and the early Greek statue habit." Pindar’s Poetry, Patrons, and Festivals: From Archaic Greece to the Roman Empire (2007): 83-139. (from Google Scholar)'>Book section (Google Scholar)</button> ·
+      <button type="button" class="linkish" data-bad="Hornblower, Simon and Catherine Morgan. Pindar's Poetry, Patrons, and Festivals: From Archaic Greece to the Roman Empire, edited by Hornblower, Simon, Catherine Morgan. Oxford;Toronto;: Oxford University Press, 2007. (from UBC Catalog)">Edited book (UBC Catalog)</button> ·
+      <button type="button" class="linkish" data-bad='Potamiti, Anna. "the Theme of Hospitality in Pindar&#39;s Fourth Pythian." Greece and Rome 62, no. 1 (2015): 1-11. Doi: 10.1017/S0017383514000205.'>Journal article</button>
+    </p>
+    <div class="nav"><span></span><button type="submit" class="btn primary">Fix citation</button></div>
+  </form>
+  <h3>Fixed citation</h3>
+  <div class="cite-out" id="xout" aria-live="polite"></div>
+  <ul class="cite-notes" id="xnotes" aria-live="polite"></ul>
+  <p><button type="button" class="btn" id="xcopy">Copy fixed citation</button> <span id="xstatus" class="hint" role="status"></span></p>
+
+  <h3>Formatting reminders</h3>
+  <ul>
+    <li>Bibliography in alphabetical order by author's last name, with a hanging indent.</li>
+    <li>Font: Times New Roman, 12 point.</li>
+    <li>Titles of books and journals in <em>italics</em>; titles of chapters and articles in “quotation marks”.</li>
+  </ul>
+</main>
+<p class="backlink" style="margin-top:1rem"><a href="index.html">← Back to the oracle</a></p>
+<footer class="foot">Proposal due <strong>Fri 23 Oct, 10 p.m.</strong> · <a href="info.html">Project Proposal Guide</a> · Questions? Message your TA in <a href="https://canvas.ubc.ca/conversations" target="_blank" rel="noopener">Canvas Inbox</a></footer>
+<script src="cite.js"></script>
+</body>
+</html>

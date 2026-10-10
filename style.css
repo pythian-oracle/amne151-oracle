@@ -111,3 +111,20 @@ a:focus-visible{outline:3px solid var(--terra);outline-offset:2px}
 .guide-scroll:focus-visible{outline:3px solid var(--terra);outline-offset:3px}
 @keyframes scrollsway{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
 @media (max-width:760px){.scene-wrap{max-width:330px;margin:0 auto}.scene{max-width:240px;margin:0}.guide-scroll{left:72%;top:10%;width:28%}.guide-scroll-label{font-size:.75rem}}
+/* citation helper */
+.lede-plain{background:#F1E8D4;border-left:4px solid var(--gold);padding:.6rem .9rem}
+.cite-form select{width:100%;font:inherit;padding:.5rem .6rem;border:1.5px solid #8C7F67;border-radius:4px;background:#fff;color:var(--ink)}
+.cfields{display:grid;grid-template-columns:1fr 1fr;gap:.7rem 1rem;margin-top:.7rem}
+.cfield label{display:block;font-weight:bold;font-size:.95rem;margin-bottom:.2rem}
+.cfield.wide{grid-column:1/-1}
+.cfield textarea{min-height:4.5rem}
+.cite-out{min-height:3rem;background:#fff;border:1px solid var(--line);border-left:4px solid var(--olive);padding:.7rem .9rem .7rem 2.9em;text-indent:-2em;overflow-wrap:anywhere}
+.cite-out:empty::before{content:"(nothing yet)";color:var(--muted);font-style:italic}
+.cite-ann{margin:.4rem 0 0 2em;color:var(--muted)}
+.cite-notes{list-style:none;padding:0}
+.cite-notes li{margin:.25rem 0}
+.cite-notes li.warn{color:#7A2F12}
+.guide-scroll.cite-tag{left:3%;top:22%;width:21%;animation-delay:-2.5s}
+@media (max-width:600px){.cfields{grid-template-columns:1fr}}
+@media (max-width:760px){.guide-scroll.cite-tag{left:0;top:14%;width:26%}}
+@media (max-width:860px){.doc{margin:0 .6rem}.backlink{padding:0 .8rem}}

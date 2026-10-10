@@ -46,3 +46,6 @@ Soft lyre-like music is created live by the browser (no audio files). It starts 
 
 ## "Not ready yet, but I have a question"
 A second button on the intro starts a short path: email, name, tutorial, then **What is your question?** It goes to the form's "Question for your TA" item (`question` in CONFIG). The required format and idea answers are filled in automatically with "(Question only, no project idea yet)" so Google accepts the response. In the main idea path the question item is left blank.
+
+## Citation Helper
+`cite.html` (with `cite.js`) builds Chicago-style bibliography entries for the five source types in the guide and fixes pasted citations from the library catalogue or Google Scholar. It runs in the browser with simple rules, no internet needed. It is linked from the game scene (the hanging wax tablet), the footer, and the guide. Upload `cite.html` and `cite.js` with the other files. Developers can run `node tests/cite.test.js`.
