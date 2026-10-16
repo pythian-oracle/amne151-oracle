@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Klepsydra · AMNE 151</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  body{min-height:100vh;display:flex;flex-direction:column}
+  .k-head{text-align:center;padding:1rem 1rem 0}
+  .k-head h1{font-weight:normal;letter-spacing:.06em;margin:.2rem 0;font-size:clamp(1.6rem,4vw,2.6rem)}
+  .k-head p{margin:0;color:var(--muted);font-size:.95rem}
+  .k-main{flex:1;display:flex;align-items:center;justify-content:center;gap:clamp(1rem,5vw,5rem);padding:1rem;flex-wrap:wrap}
+  .k-art{width:min(380px,80vw);height:auto;max-height:72vh}
+  .k-side{display:flex;flex-direction:column;align-items:center;gap:1.1rem}
+  .k-time{font-size:clamp(4.5rem,15vw,11rem);line-height:1;font-variant-numeric:tabular-nums;letter-spacing:.04em;color:var(--ink);margin:0}
+  .k-time.done{color:var(--terra)}
+  .k-status{min-height:1.5em;color:var(--muted);font-style:italic;margin:0;font-size:1.1rem}
+  .k-row{display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center}
+  .k-row .btn{font-size:1.15rem;min-width:6.5rem}
+  .k-mins{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;justify-content:center;border:0;margin:0;padding:0}
+  .k-mins legend{float:left;margin-right:.5rem;color:var(--muted);padding:0}
+  .k-mins button{font:inherit;font-size:1.1rem;width:2.8rem;height:2.8rem;border-radius:50%;border:1.5px solid var(--gold);background:var(--card);color:var(--ink);cursor:pointer}
+  .k-mins button[aria-pressed="true"]{background:var(--terra);border-color:var(--terra);color:#fff}
+  .k-mins button:disabled{opacity:.45;cursor:not-allowed}
+  .k-mins button:focus-visible,.k-row .btn:focus-visible{outline:3px solid var(--terra);outline-offset:2px}
+  .k-foot{text-align:center;font-size:.85rem;color:var(--muted);padding:.5rem 1rem 1rem}
+  .stream{stroke-dasharray:6 5;animation:flow .35s linear infinite}
+  @keyframes flow{to{stroke-dashoffset:-11}}
+  .ripple{animation:rip 1s ease-out infinite;transform-box:fill-box;transform-origin:center}
+  @keyframes rip{0%{opacity:.8;transform:scale(.4)}100%{opacity:0;transform:scale(1.6)}}
+  @media (prefers-reduced-motion:reduce){.stream,.ripple{animation:none}}
+  @media (max-width:700px){.k-art{width:min(260px,70vw);max-height:46vh}.k-main{gap:.5rem}}
+</style>
+</head>
+<body>
+<header class="k-head">
+  <p class="course">AMNE 151 · Greek &amp; Roman Mythology</p>
+  <h1>Klepsydra</h1>
+  <p>The water clock of the Athenian law courts</p>
+</header>
+<main class="k-main">
+  <svg class="k-art" viewBox="0 0 300 460" role="img" aria-label="A terracotta water clock pouring into a jar below">
+    <defs>
+      <clipPath id="upClip"><path id="upShape" d="M125 22 L175 22 L172 40 C215 50 228 75 226 105 C224 150 205 195 192 215 L108 215 C95 195 76 150 74 105 C72 75 85 50 128 40 Z"/></clipPath>
+      <clipPath id="loClip"><path d="M190 302 L240 302 L238 315 C268 325 275 350 273 375 C271 410 258 432 250 445 L180 445 C172 432 159 410 157 375 C155 350 162 325 192 315 Z"/></clipPath>
+      <linearGradient id="glaze" x1="0" x2="1"><stop offset="0" stop-color="#1E1916"/><stop offset=".45" stop-color="#3A302A"/><stop offset="1" stop-color="#15110F"/></linearGradient>
+      <linearGradient id="clay" x1="0" x2="1"><stop offset="0" stop-color="#9A4E2A"/><stop offset=".5" stop-color="#C46E40"/><stop offset="1" stop-color="#8A4424"/></linearGradient>
+      <linearGradient id="water" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7FB0C2"/><stop offset="1" stop-color="#3F7488"/></linearGradient>
+      <linearGradient id="bronze" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D9B55A"/><stop offset="1" stop-color="#7C5A2E"/></linearGradient>
+    </defs>
+    <!-- ground shadow -->
+    <ellipse cx="215" cy="448" rx="70" ry="7" fill="#D8CCB4"/>
+    <!-- upper jar (black glaze, clay band), shown cut away so the water is visible -->
+    <g>
+      <path d="M74 98 C52 94 52 120 77 122" stroke="#1E1916" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M226 98 C248 94 248 120 223 122" stroke="#1E1916" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <use href="#upShape" fill="url(#glaze)"/>
+      <g clip-path="url(#upClip)">
+        <rect x="88" y="44" width="124" height="172" fill="#2B2420" opacity=".55"/>
+        <rect id="upWater" x="60" y="50" width="180" height="170" fill="url(#water)" opacity=".85"/>
+        <rect x="60" y="118" width="180" height="26" fill="url(#clay)" opacity=".92"/>
+        <line x1="60" y1="118" x2="240" y2="118" stroke="#E9D9B8" stroke-width="1"/><line x1="60" y1="144" x2="240" y2="144" stroke="#E9D9B8" stroke-width="1"/>
+      </g>
+      <text x="150" y="136" text-anchor="middle" font-family="Georgia,serif" font-size="12.5" letter-spacing="1.6" fill="#1E1916">ΑΝΤΙΟΧΙΔΟΣ</text>
+      <text x="150" y="66" text-anchor="middle" font-family="Georgia,serif" font-size="13" letter-spacing="2" fill="#C46E40">ΧΧ</text>
+      <path d="M122 22 L178 22" stroke="#3A302A" stroke-width="5" stroke-linecap="round"/>
+      <path d="M118 205 C130 210 170 210 182 205" stroke="#C46E40" stroke-width="1.5" fill="none" opacity=".7"/>
+      <!-- bronze spout -->
+      <path d="M194 202 L214 206 L214 212 L194 210 Z" fill="url(#bronze)" stroke="#5E4322" stroke-width=".8"/>
+      <circle cx="214" cy="209" r="2.4" fill="#5E4322"/>
+    </g>
+    <!-- stream -->
+    <g id="streamG">
+      <path id="stream" class="stream" d="M215 210 C221 222 219 262 216 400" stroke="#6FA3B6" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+      <ellipse id="ripple" class="ripple" cx="216" cy="400" rx="9" ry="2" fill="none" stroke="#CFE3EA" stroke-width="1.2"/>
+    </g>
+    <!-- lower jar (red clay) -->
+    <g>
+      <path d="M190 302 L240 302 L238 315 C268 325 275 350 273 375 C271 410 258 432 250 445 L180 445 C172 432 159 410 157 375 C155 350 162 325 192 315 Z" fill="url(#clay)"/>
+      <g clip-path="url(#loClip)">
+        <rect x="150" y="300" width="130" height="150" fill="#5A2C17" opacity=".35"/>
+        <rect id="loWater" x="150" y="440" width="130" height="10" fill="url(#water)" opacity=".85"/>
+        <rect x="150" y="392" width="130" height="5" fill="#1E1916" opacity=".75"/>
+      </g>
+      <path d="M186 302 L244 302" stroke="#8A4424" stroke-width="5" stroke-linecap="round"/>
+    </g>
+  </svg>
+  <div class="k-side">
+    <p class="k-time" id="time" role="timer" aria-live="off">05:00</p>
+    <p class="k-status" id="status" aria-live="polite">Ready</p>
+    <fieldset class="k-mins" id="mins">
+      <legend>Minutes</legend>
+      <button type="button" data-m="1" aria-pressed="false">1</button>
+      <button type="button" data-m="2" aria-pressed="false">2</button>
+      <button type="button" data-m="3" aria-pressed="false">3</button>
+      <button type="button" data-m="4" aria-pressed="false">4</button>
+      <button type="button" data-m="5" aria-pressed="true">5</button>
+    </fieldset>
+    <div class="k-row">
+      <button type="button" class="btn primary" id="start">Start</button>
+      <button type="button" class="btn" id="pause" disabled>Pause</button>
+      <button type="button" class="btn" id="reset">Reset</button>
+    </div>
+  </div>
+</main>
+<p class="k-foot">After the klepsydra of the Antiochis tribe, Athenian Agora (Agora Museum P 2084, late 5th c. BCE), marked ΧΧ for its two choes. A speaker's time ran while the water flowed.<br><a href="index.html">Back to the oracle</a></p>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var q = parseInt(new URLSearchParams(location.search).get('m'), 10);
+  var mins = (q >= 1 && q <= 5) ? q : 5;
+  var total, remain, running = false, endAt = 0, raf = 0, ctx = null;
+  var UP_FULL = 50, UP_EMPTY = 212, LO_EMPTY = 442, LO_FULL = 330;
+  var timeEl = $('time'), statusEl = $('status'), startB = $('start'), pauseB = $('pause'), resetB = $('reset');
+  var minBtns = Array.prototype.slice.call(document.querySelectorAll('#mins button'));
+
+  function fmt(ms) { var s = Math.ceil(ms / 1000), m = Math.floor(s / 60); s %= 60; return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s; }
+  function draw() {
+    var f = Math.max(0, Math.min(1, remain / total));            // fraction of water still in the upper jar
+    var uy = UP_EMPTY - (UP_EMPTY - UP_FULL) * f, ly = LO_EMPTY - (LO_EMPTY - LO_FULL) * (1 - f);
+    $('upWater').setAttribute('y', uy); $('upWater').setAttribute('height', 230 - uy);
+    $('loWater').setAttribute('y', ly); $('loWater').setAttribute('height', 450 - ly);
+    var s = $('stream');
+    s.setAttribute('d', 'M215 210 C' + (219 + 4 * f) + ' 222 ' + (218 + 2 * f) + ' 262 216 ' + ly);
+    s.setAttribute('stroke-width', (1.6 + 2 * Math.sqrt(f)).toFixed(2));   // the jet thins as the head of water drops
+    $('ripple').setAttribute('cy', ly);
+    $('streamG').style.display = (running && remain > 0) ? '' : 'none';
+    timeEl.textContent = fmt(remain);
+    document.title = (running ? fmt(remain) + ' · ' : '') + 'Klepsydra · AMNE 151';
+  }
+  function paintMins() {
+    minBtns.forEach(function (b) { b.setAttribute('aria-pressed', +b.dataset.m === mins ? 'true' : 'false'); b.disabled = running; });
+  }
+  function setDuration(m) { mins = m; total = remain = m * 60000; running = false; timeEl.classList.remove('done'); statusEl.textContent = 'Ready'; ui(); }
+  function ui() {
+    startB.disabled = running || remain <= 0; pauseB.disabled = !running;
+    startB.textContent = (remain < total && remain > 0) ? 'Resume' : 'Start';
+    paintMins(); draw();
+  }
+  function tick() {
+    remain = Math.max(0, endAt - performance.now());
+    if (remain <= 0) { running = false; finish(); ui(); return; }
+    draw(); raf = requestAnimationFrame(tick);
+  }
+  function finish() { timeEl.classList.add('done'); statusEl.textContent = 'The water has run out.'; gong(); }
+  function muted() { try { return localStorage.getItem('oracle-music-on') === '0'; } catch (e) { return false; } }
+  function audio() {   // created on a user click, so autoplay rules are satisfied
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    if (!ctx) { try { ctx = new AC(); } catch (e) { return null; } }
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+  function gong() {
+    if (muted() || !ctx) return;
+    try {
+      var t = ctx.currentTime + 0.05, out = ctx.createGain();
+      out.gain.setValueAtTime(0.0001, t); out.gain.exponentialRampToValueAtTime(0.5, t + 0.02); out.gain.exponentialRampToValueAtTime(0.0001, t + 6);
+      out.connect(ctx.destination);
+      [[110, 1], [221, .6], [266, .35], [331, .3], [442, .18], [587, .1]].forEach(function (p, i) {
+        var o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = p[0];
+        o.frequency.setValueAtTime(p[0] * 1.004, t); o.frequency.exponentialRampToValueAtTime(p[0], t + 1.5);
+        g.gain.setValueAtTime(p[1], t); g.gain.exponentialRampToValueAtTime(0.0001, t + 6 - i * 0.6);
+        o.connect(g); g.connect(out); o.start(t); o.stop(t + 6.1);
+      });
+    } catch (e) {}
+  }
+  startB.addEventListener('click', function () {
+    if (running || remain <= 0) return;
+    audio(); running = true; endAt = performance.now() + remain; statusEl.textContent = 'The water flows…';
+    ui(); cancelAnimationFrame(raf); raf = requestAnimationFrame(tick);
+  });
+  pauseB.addEventListener('click', function () {
+    if (!running) return;
+    remain = Math.max(0, endAt - performance.now()); running = false; cancelAnimationFrame(raf);
+    statusEl.textContent = 'Paused'; ui();
+  });
+  resetB.addEventListener('click', function () { cancelAnimationFrame(raf); setDuration(mins); });
+  minBtns.forEach(function (b) { b.addEventListener('click', function () { if (running) return; cancelAnimationFrame(raf); setDuration(+b.dataset.m); }); });
+  // test hook: ?at=0.4 shows the clock 40% of the way through (for screenshots)
+  setDuration(mins);
+  var at = parseFloat(new URLSearchParams(location.search).get('at'));
+  if (at > 0 && at < 1) { remain = total * (1 - at); running = true; draw(); running = false; statusEl.textContent = 'The water flows…'; timeEl.textContent = fmt(remain); $('streamG').style.display = ''; }
+})();
+</script>
+</body>
+</html>
