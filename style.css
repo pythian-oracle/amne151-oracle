@@ -109,8 +109,8 @@ a:focus-visible{outline:3px solid var(--terra);outline-offset:2px}
 .guide-scroll:hover .bottom-rod,.guide-scroll:focus-visible .bottom-rod{transform:translateY(9px)}
 .guide-scroll:hover .guide-scroll-label,.guide-scroll:focus-visible .guide-scroll-label{background:var(--terra);color:#fff}
 .guide-scroll:focus-visible{outline:3px solid var(--terra);outline-offset:3px}
-.treasure-chest{position:absolute;left:50%;bottom:0;width:26%;margin-left:-13%;display:flex;flex-direction:column;align-items:center;text-decoration:none;color:var(--ink);transform-origin:50% 100%;animation:chestsway 5s ease-in-out infinite;border-radius:6px;padding:2px;z-index:1}
-.treasure-chest svg{width:100%;height:auto;aspect-ratio:2.75;display:block;overflow:visible;transition:filter .3s}
+.treasure-chest{position:absolute;left:74%;top:74%;width:20%;display:flex;flex-direction:column;align-items:center;text-decoration:none;color:var(--ink);transform-origin:50% 100%;animation:chestsway 5s ease-in-out infinite;border-radius:6px;padding:2px;z-index:1}
+.treasure-chest svg{width:100%;height:auto;aspect-ratio:2.1;display:block;overflow:visible;transition:filter .3s}
 .treasure-chest .chest-lid{transition:transform .35s ease;transform-origin:10px 34px}
 .treasure-chest:hover svg,.treasure-chest:focus-visible svg{filter:drop-shadow(0 0 6px rgba(231,180,90,.9))}
 .treasure-chest:hover .chest-lid,.treasure-chest:focus-visible .chest-lid{transform:rotate(-14deg)}
@@ -118,7 +118,7 @@ a:focus-visible{outline:3px solid var(--terra);outline-offset:2px}
 .treasure-chest:focus-visible{outline:3px solid var(--terra);outline-offset:3px}
 @keyframes chestsway{0%,100%{transform:rotate(-1.5deg)}50%{transform:rotate(1.5deg)}}
 @keyframes scrollsway{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
-@media (max-width:760px){.scene-wrap{max-width:330px;margin:0 auto}.scene{max-width:240px;margin:0}.guide-scroll{left:72%;top:10%;width:28%}.guide-scroll-label{font-size:.75rem}.treasure-chest{width:17%;margin-left:-8.5%;bottom:0}.treasure-chest svg{aspect-ratio:3.3}}
+@media (max-width:760px){.scene-wrap{max-width:330px;margin:0 auto}.scene{max-width:240px;margin:0}.guide-scroll{left:72%;top:10%;width:28%}.guide-scroll-label{font-size:.75rem}.treasure-chest{left:76%;top:auto;bottom:-12px;width:20%}.treasure-chest svg{aspect-ratio:3}}
 
 /* offering minigame */
 .offerings{position:absolute;left:18.5%;top:47%;width:13%;display:flex;flex-direction:column;gap:2%;z-index:2}
