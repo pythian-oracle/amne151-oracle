@@ -42,6 +42,9 @@ legend{padding:0}
 .btn.primary{background:var(--terra);border-color:var(--terra);color:#fff}
 .btn.primary:hover{background:#8A3A19}
 .btn:hover{background:#EFE6D3}
+a.btn{display:inline-block;text-decoration:none}
+a.btn.primary,a.btn.primary:visited{color:#fff}
+.biblink{margin:.8rem 0 1rem}
 .btn:disabled{opacity:.6;cursor:wait}
 .review{margin:0;padding:0}
 .review dt{font-weight:bold;margin-top:.7rem;display:flex;justify-content:space-between;gap:1rem}
