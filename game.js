@@ -102,6 +102,55 @@ var CONFIG = {
       if (ctx.createStereoPanner) { var p = ctx.createStereoPanner(); p.pan.value = pan || 0; g.connect(p); p.connect(dest || bus); } else g.connect(dest || bus);
       src.start(when); src.stop(when + 3.5);
     }
+    // ---- offering pieces: each gift gets its own short tune ----
+    function reed(f, a, dur, vol, out, glide) {   // aulos-like double reed: buzzy, nasal, with vibrato
+      var r = ctx.createOscillator(); r.type = 'sawtooth'; r.frequency.setValueAtTime(glide || f, a);
+      if (glide) r.frequency.exponentialRampToValueAtTime(f, a + 0.08);
+      var lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.value = 5.4; lg.gain.value = f * 0.007; lfo.connect(lg); lg.connect(r.frequency);
+      var bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = f * 3; bp.Q.value = 2.5;
+      var g = ctx.createGain(); g.gain.setValueAtTime(0.0001, a); g.gain.linearRampToValueAtTime(vol, a + 0.06);
+      g.gain.setValueAtTime(vol, a + dur - 0.08); g.gain.linearRampToValueAtTime(0.0001, a + dur);
+      r.connect(bp); bp.connect(g); g.connect(out); r.start(a); lfo.start(a); r.stop(a + dur + 0.05); lfo.stop(a + dur + 0.05);
+    }
+    function drum(td, vol, hi, lo, out) {   // frame drum / tympanon thump
+      var o = ctx.createOscillator(), dg = ctx.createGain();
+      o.type = 'sine'; o.frequency.setValueAtTime(hi, td); o.frequency.exponentialRampToValueAtTime(lo, td + 0.4);
+      dg.gain.setValueAtTime(0.0001, td); dg.gain.exponentialRampToValueAtTime(vol, td + 0.01); dg.gain.exponentialRampToValueAtTime(0.0001, td + 0.9);
+      o.connect(dg); dg.connect(out); o.start(td); o.stop(td + 0.95);
+    }
+    function low(f, a, dur, vol, out) {     // solemn low drone voice
+      var o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f;
+      var lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 420;
+      var g = ctx.createGain(); g.gain.setValueAtTime(0.0001, a); g.gain.linearRampToValueAtTime(vol, a + 1.2);
+      g.gain.setValueAtTime(vol, a + dur - 1.4); g.gain.linearRampToValueAtTime(0.0001, a + dur);
+      o.connect(lp); lp.connect(g); g.connect(out); o.start(a); o.stop(a + dur + 0.05);
+    }
+    var OFFER_SOUNDS = {
+      // myrtle: light, quick lyre arpeggios up high, ending on a shimmering open fifth
+      myrtle: function (t, out) {
+        [587.33, 659.25, 739.99, 880, 739.99, 880, 987.77, 1174.66].forEach(function (f, i) { pluck(f, t + i * 0.14, 0.26, (i % 2 ? 0.35 : -0.35), out); });
+        [440, 659.25, 880].forEach(function (f, i) { pluck(f, t + 1.5 + i * 0.09, 0.22, (i - 1) * 0.3, out); });
+        [1174.66, 987.77, 880, 739.99, 880].forEach(function (f, i) { pluck(f, t + 2.3 + i * 0.18, 0.16, 0.2, out); });
+        pluck(587.33, t + 3.3, 0.24, -0.15, out); pluck(880, t + 3.33, 0.2, 0.15, out); pluck(1174.66, t + 3.36, 0.12, 0, out);
+      },
+      // lamb: a pastoral aulos tune in D Dorian over a soft lyre bed
+      lamb: function (t, out) {
+        var m = [[293.66, 0.5], [329.63, 0.25], [349.23, 0.25], [392, 0.6], [349.23, 0.3], [329.63, 0.3], [293.66, 0.5], [261.63, 0.3], [293.66, 1.1]], a = t + 0.2;
+        m.forEach(function (n, i) { reed(n[0], a, n[1] + 0.04, 0.085, out, i && Math.random() < 0.5 ? n[0] * 0.97 : 0); a += n[1]; });
+        reed(146.83, t + 0.2, a - t - 0.1, 0.03, out);   // the second pipe holds the drone
+        [146.83, 220, 293.66].forEach(function (f, i) { pluck(f, t + 0.2 + i * 1.3, 0.22, -0.2, out); });
+        pluck(220, a, 0.2, 0.2, out); pluck(293.66, a + 0.04, 0.2, -0.2, out);
+      },
+      // ox: grand and solemn - low drone, slow heavy drum beats, deep lyre chords
+      ox: function (t, out) {
+        low(73.42, t, 6, 0.12, out); low(110, t + 0.3, 5.7, 0.08, out); low(36.71, t + 0.6, 5.2, 0.1, out);
+        [0.2, 1.4, 2.6, 3.2, 3.8].forEach(function (d, i) { drum(t + d, i === 4 ? 1 : 0.8, i > 2 ? 110 : 90, 38, out); });
+        [[146.83, 220, 293.66], [130.81, 196, 261.63], [146.83, 220, 293.66, 440]].forEach(function (ch, j) {
+          ch.forEach(function (f, i) { pluck(f, t + 0.2 + j * 1.2 + i * 0.06, 0.32, (i - 1) * 0.25, out); });
+        });
+        reed(146.83, t + 4, 1.8, 0.05, out); reed(220, t + 4, 1.8, 0.04, out);
+      }
+    };
     function phrase() {
       if (!ctx || !on) return;
       if (document.hidden) { timer = setTimeout(phrase, 2000); return; }
@@ -170,7 +219,7 @@ var CONFIG = {
         if (on) { if (init()) apply(); } else apply();
         return on;
       },
-      cue: function () {
+      cue: function (kind) {
         if (!on || document.hidden || !AC) return;
         if (!ctx && !init()) return;
         try {
@@ -180,29 +229,14 @@ var CONFIG = {
           if (!busy) cueUntil = now + 6500;
           var out = ctx.createGain(); out.gain.value = 0.9 * lvl; out.connect(ctx.destination);
           var rv = ctx.createConvolver(); rv.buffer = impulse(2.5, 2.4); var rw = ctx.createGain(); rw.gain.value = 0.4; out.connect(rv); rv.connect(rw); rw.connect(ctx.destination);
-          // 1. rising lyre flourish while the gift flies
-          [293.66, 349.23, 440, 523.25, 587.33, 698.46].forEach(function (f, i) { pluck(f, t + i * 0.2, 0.32 * lvl, (i % 2 ? 0.3 : -0.3), out); });
-          if (busy) return;
+          var k = OFFER_SOUNDS[kind] ? kind : 'myrtle';
+          if (busy) { pluck(587.33, t, 0.25 * lvl, 0.2, out); pluck(880, t + 0.12, 0.18 * lvl, -0.2, out); return; }
           // duck the background lyre, restore afterwards
           var mv = CONFIG.MUSIC_VOLUME;
           master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value, t);
           master.gain.linearRampToValueAtTime(mv * 0.25, t + 0.3); master.gain.setValueAtTime(mv * 0.25, t + 6);
           master.gain.linearRampToValueAtTime(mv, t + 7.5);
-          // 2. frame-drum thump on landing (~1.4 s)
-          var td = t + 1.4, o = ctx.createOscillator(), dg = ctx.createGain();
-          o.type = 'sine'; o.frequency.setValueAtTime(130, td); o.frequency.exponentialRampToValueAtTime(48, td + 0.35);
-          dg.gain.setValueAtTime(0.0001, td); dg.gain.exponentialRampToValueAtTime(0.9, td + 0.01); dg.gain.exponentialRampToValueAtTime(0.0001, td + 0.7);
-          o.connect(dg); dg.connect(out); o.start(td); o.stop(td + 0.75);
-          // 3. aulos-like reedy drone with vibrato
-          [146.83, 220].forEach(function (f, i) {
-            var r = ctx.createOscillator(); r.type = i ? 'square' : 'sawtooth'; r.frequency.value = f;
-            var lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.value = 5.2; lg.gain.value = f * 0.008; lfo.connect(lg); lg.connect(r.frequency);
-            var bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = f * 4; bp.Q.value = 3;
-            var g = ctx.createGain(), a = td + 0.1; g.gain.setValueAtTime(0.0001, a); g.gain.linearRampToValueAtTime(0.09, a + 0.8); g.gain.setValueAtTime(0.09, a + 3.6); g.gain.linearRampToValueAtTime(0.0001, a + 5);
-            r.connect(bp); bp.connect(g); g.connect(out); r.start(a); lfo.start(a); r.stop(a + 5.1); lfo.stop(a + 5.1);
-          });
-          // 4. bright resolving chord (D major) as the smoke rises
-          [293.66, 369.99, 440, 587.33].forEach(function (f, i) { pluck(f, t + 3 + i * 0.05, 0.3, (i - 1.5) * 0.25, out); pluck(f * 2, t + 3.1 + i * 0.05, 0.12, 0, out); });
+          OFFER_SOUNDS[k](t, out);
         } catch (e) {}
       },
       whoosh: function () {
@@ -603,7 +637,7 @@ var CONFIG = {
       var r = btn.getBoundingClientRect(), g = geo();
       if (document.activeElement === btn) { var nxt = Array.prototype.filter.call(btns, function (b) { return b !== btn && !b.classList.contains('gone'); })[0]; if (nxt) nxt.focus(); }
       btn.classList.add('gone');
-      speak(kind); Music.cue();
+      speak(kind); Music.cue(kind);
       setTimeout(function () { btn.classList.remove('gone'); btn.classList.add('back'); setTimeout(function () { btn.classList.remove('back'); }, 700); }, reduced ? 2500 : 4500);
       if (reduced) { burn(); return; }
       var fly = document.createElement('div'); fly.className = 'offer-fly'; fly.setAttribute('aria-hidden', 'true');
