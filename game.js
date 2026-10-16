@@ -78,6 +78,29 @@ var CONFIG = {
       for (var c = 0; c < 2; c++) { var d = buf.getChannelData(c); for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay); }
       return buf;
     }
+    // nodes scheduled by the current offering cue, so a new cue (or mute / next step) can fade and stop them
+    var trackList = null, active = null, cueVerb = null, lastCue = 0, duckTimer = null;
+    function T(n) { if (trackList) trackList.push(n); }
+    function stopCue(fade) {
+      if (!active || !ctx) return;
+      var a = active; active = null; fade = fade || 0.08;
+      var t = ctx.currentTime;
+      try { a.out.gain.cancelScheduledValues(t); a.out.gain.setValueAtTime(a.out.gain.value, t); a.out.gain.linearRampToValueAtTime(0, t + fade); } catch (e) {}
+      a.nodes.forEach(function (n) { try { n.stop(t + fade + 0.02); } catch (e) {} });
+      setTimeout(function () { try { a.out.disconnect(); } catch (e) {} }, (fade + 0.2) * 1000);
+    }
+    function unduck(over) {   // put the background lyre back at its proper level (or silence if muted)
+      clearTimeout(duckTimer); duckTimer = null;
+      if (!ctx) return;
+      var t = ctx.currentTime, g = master.gain;
+      g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(on ? CONFIG.MUSIC_VOLUME : 0, t + (over || 1.5));
+    }
+    function duck(hold) {
+      clearTimeout(duckTimer);
+      var t = ctx.currentTime, g = master.gain, mv = CONFIG.MUSIC_VOLUME;
+      g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(mv * 0.25, t + 0.3);
+      duckTimer = setTimeout(function () { unduck(1.5); }, hold * 1000);   // timer, not a scheduled ramp, so it can't be lost
+    }
     function pluckBuffer(freq) {
       var k = Math.round(freq);
       if (cache[k]) return cache[k];
@@ -100,7 +123,7 @@ var CONFIG = {
       var g = ctx.createGain(); g.gain.setValueAtTime(vol, when); g.gain.exponentialRampToValueAtTime(0.0001, when + 3.4);
       src.connect(lp); lp.connect(g);
       if (ctx.createStereoPanner) { var p = ctx.createStereoPanner(); p.pan.value = pan || 0; g.connect(p); p.connect(dest || bus); } else g.connect(dest || bus);
-      src.start(when); src.stop(when + 3.5);
+      src.start(when); src.stop(when + 3.5); T(src);
     }
     // ---- offering pieces: each gift gets its own short tune ----
     function reed(f, a, dur, vol, out, glide) {   // aulos-like double reed: buzzy, nasal, with vibrato
@@ -110,28 +133,41 @@ var CONFIG = {
       var bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = f * 3; bp.Q.value = 2.5;
       var g = ctx.createGain(); g.gain.setValueAtTime(0.0001, a); g.gain.linearRampToValueAtTime(vol, a + 0.06);
       g.gain.setValueAtTime(vol, a + dur - 0.08); g.gain.linearRampToValueAtTime(0.0001, a + dur);
-      r.connect(bp); bp.connect(g); g.connect(out); r.start(a); lfo.start(a); r.stop(a + dur + 0.05); lfo.stop(a + dur + 0.05);
+      r.connect(bp); bp.connect(g); g.connect(out); r.start(a); lfo.start(a); r.stop(a + dur + 0.05); lfo.stop(a + dur + 0.05); T(r); T(lfo);
     }
     function drum(td, vol, hi, lo, out) {   // frame drum / tympanon thump
       var o = ctx.createOscillator(), dg = ctx.createGain();
       o.type = 'sine'; o.frequency.setValueAtTime(hi, td); o.frequency.exponentialRampToValueAtTime(lo, td + 0.4);
       dg.gain.setValueAtTime(0.0001, td); dg.gain.exponentialRampToValueAtTime(vol, td + 0.01); dg.gain.exponentialRampToValueAtTime(0.0001, td + 0.9);
-      o.connect(dg); dg.connect(out); o.start(td); o.stop(td + 0.95);
+      o.connect(dg); dg.connect(out); o.start(td); o.stop(td + 0.95); T(o);
     }
     function low(f, a, dur, vol, out) {     // solemn low drone voice
       var o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f;
       var lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 420;
       var g = ctx.createGain(); g.gain.setValueAtTime(0.0001, a); g.gain.linearRampToValueAtTime(vol, a + 1.2);
       g.gain.setValueAtTime(vol, a + dur - 1.4); g.gain.linearRampToValueAtTime(0.0001, a + dur);
-      o.connect(lp); lp.connect(g); g.connect(out); o.start(a); o.stop(a + dur + 0.05);
+      o.connect(lp); lp.connect(g); g.connect(out); o.start(a); o.stop(a + dur + 0.05); T(o);
     }
     var OFFER_SOUNDS = {
-      // myrtle: light, quick lyre arpeggios up high, ending on a shimmering open fifth
-      myrtle: function (t, out) {
-        [587.33, 659.25, 739.99, 880, 739.99, 880, 987.77, 1174.66].forEach(function (f, i) { pluck(f, t + i * 0.14, 0.26, (i % 2 ? 0.35 : -0.35), out); });
-        [440, 659.25, 880].forEach(function (f, i) { pluck(f, t + 1.5 + i * 0.09, 0.22, (i - 1) * 0.3, out); });
-        [1174.66, 987.77, 880, 739.99, 880].forEach(function (f, i) { pluck(f, t + 2.3 + i * 0.18, 0.16, 0.2, out); });
-        pluck(587.33, t + 3.3, 0.24, -0.15, out); pluck(880, t + 3.33, 0.2, 0.15, out); pluck(1174.66, t + 3.36, 0.12, 0, out);
+      // myrtle: the original offering tune
+      myrtle: function (t, out) {   // the original shared offering tune (from before 0f82248)
+        // 1. rising lyre flourish while the gift flies
+        [293.66, 349.23, 440, 523.25, 587.33, 698.46].forEach(function (f, i) { pluck(f, t + i * 0.2, 0.32, (i % 2 ? 0.3 : -0.3), out); });
+        // 2. frame-drum thump on landing (~1.4 s)
+        var td = t + 1.4, o = ctx.createOscillator(), dg = ctx.createGain();
+        o.type = 'sine'; o.frequency.setValueAtTime(130, td); o.frequency.exponentialRampToValueAtTime(48, td + 0.35);
+        dg.gain.setValueAtTime(0.0001, td); dg.gain.exponentialRampToValueAtTime(0.9, td + 0.01); dg.gain.exponentialRampToValueAtTime(0.0001, td + 0.7);
+        o.connect(dg); dg.connect(out); o.start(td); o.stop(td + 0.75); T(o);
+        // 3. aulos-like reedy drone with vibrato
+        [146.83, 220].forEach(function (f, i) {
+          var r = ctx.createOscillator(); r.type = i ? 'square' : 'sawtooth'; r.frequency.value = f;
+          var lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.value = 5.2; lg.gain.value = f * 0.008; lfo.connect(lg); lg.connect(r.frequency);
+          var bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = f * 4; bp.Q.value = 3;
+          var g = ctx.createGain(), a = td + 0.1; g.gain.setValueAtTime(0.0001, a); g.gain.linearRampToValueAtTime(0.09, a + 0.8); g.gain.setValueAtTime(0.09, a + 3.6); g.gain.linearRampToValueAtTime(0.0001, a + 5);
+          r.connect(bp); bp.connect(g); g.connect(out); r.start(a); lfo.start(a); r.stop(a + 5.1); lfo.stop(a + 5.1); T(r); T(lfo);
+        });
+        // 4. bright resolving chord (D major) as the smoke rises
+        [293.66, 369.99, 440, 587.33].forEach(function (f, i) { pluck(f, t + 3 + i * 0.05, 0.3, (i - 1.5) * 0.25, out); pluck(f * 2, t + 3.1 + i * 0.05, 0.12, 0, out); });
       },
       // lamb: a pastoral aulos tune in D Dorian over a soft lyre bed
       lamb: function (t, out) {
@@ -216,29 +252,32 @@ var CONFIG = {
       start: function () { if (init()) apply(); },
       toggle: function () {
         on = !on; try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (e) {}
+        if (!on && ctx) { stopCue(0.08); clearTimeout(duckTimer); duckTimer = null; }
         if (on) { if (init()) apply(); } else apply();
         return on;
       },
       cue: function (kind) {
         if (!on || document.hidden || !AC) return;
         if (!ctx && !init()) return;
+        var now = Date.now();
+        if (now - lastCue < 250) return;   // ignore double-fires from one click / key repeat
+        lastCue = now;
         try {
           if (ctx.state !== 'running') { ctx.resume(); apply(); }
-          var t = ctx.currentTime + 0.03, now = Date.now(), busy = now < cueUntil;
-          var lvl = busy ? 0.35 : 1;   // a cue while another plays is just a quiet flourish; cues never stack loudly
-          if (!busy) cueUntil = now + 6500;
-          var out = ctx.createGain(); out.gain.value = 0.9 * lvl; out.connect(ctx.destination);
-          var rv = ctx.createConvolver(); rv.buffer = impulse(2.5, 2.4); var rw = ctx.createGain(); rw.gain.value = 0.4; out.connect(rv); rv.connect(rw); rw.connect(ctx.destination);
-          var k = OFFER_SOUNDS[kind] ? kind : 'myrtle';
-          if (busy) { pluck(587.33, t, 0.25 * lvl, 0.2, out); pluck(880, t + 0.12, 0.18 * lvl, -0.2, out); return; }
-          // duck the background lyre, restore afterwards
-          var mv = CONFIG.MUSIC_VOLUME;
-          master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value, t);
-          master.gain.linearRampToValueAtTime(mv * 0.25, t + 0.3); master.gain.setValueAtTime(mv * 0.25, t + 6);
-          master.gain.linearRampToValueAtTime(mv, t + 7.5);
-          OFFER_SOUNDS[k](t, out);
-        } catch (e) {}
+          stopCue(0.08);                     // fade out whatever offering music is still playing
+          var t = ctx.currentTime + 0.1, k = OFFER_SOUNDS[kind] ? kind : 'myrtle';
+          var out = ctx.createGain(); out.gain.setValueAtTime(0, ctx.currentTime); out.gain.linearRampToValueAtTime(0.9, t); out.connect(ctx.destination);
+          if (!cueVerb) { cueVerb = ctx.createConvolver(); cueVerb.buffer = impulse(2.5, 2.4); var rw = ctx.createGain(); rw.gain.value = 0.4; cueVerb.connect(rw); rw.connect(ctx.destination); }
+          out.connect(cueVerb);
+          active = { out: out, nodes: [] };
+          trackList = active.nodes;
+          try { OFFER_SOUNDS[k](t, out); } finally { trackList = null; }
+          duck(6.5);
+          var mine = active;
+          setTimeout(function () { if (active === mine) { active = null; setTimeout(function () { try { mine.out.disconnect(); } catch (e) {} }, 200); } }, 8000);
+        } catch (e) { trackList = null; }
       },
+      stopCue: function () { if (!ctx) return; var had = !!active; stopCue(0.08); if (had) unduck(0.6); },
       whoosh: function () {
         if (!ctx || !on || document.hidden) return;
         try {
@@ -366,6 +405,7 @@ var CONFIG = {
   }
 
   function show(i, fromReview) {
+    Music.stopCue();   // moving to another step fades out any offering music still playing
     var qs = pageQs(i); idx = i;
     saveDraft(fromReview ? 'review' : i);
     renderLaurels(i); content.innerHTML = '';
