@@ -44,7 +44,7 @@
   <svg class="k-art" viewBox="0 0 300 460" role="img" aria-label="A terracotta water clock pouring into a jar below">
     <defs>
       <clipPath id="upClip"><path id="upShape" d="M125 22 L175 22 L172 40 C215 50 228 75 226 105 C224 150 205 195 192 215 L108 215 C95 195 76 150 74 105 C72 75 85 50 128 40 Z"/></clipPath>
-      <clipPath id="loClip"><path d="M190 302 L240 302 L238 315 C268 325 275 350 273 375 C271 410 258 432 250 445 L180 445 C172 432 159 410 157 375 C155 350 162 325 192 315 Z"/></clipPath>
+      <clipPath id="loClip"><path id="loShape" d="M190 302 L240 302 L238 315 C268 325 275 350 273 375 C271 410 258 432 250 445 L180 445 C172 432 159 410 157 375 C155 350 162 325 192 315 Z"/></clipPath>
       <linearGradient id="glaze" x1="0" x2="1"><stop offset="0" stop-color="#1E1916"/><stop offset=".45" stop-color="#3A302A"/><stop offset="1" stop-color="#15110F"/></linearGradient>
       <linearGradient id="clay" x1="0" x2="1"><stop offset="0" stop-color="#9A4E2A"/><stop offset=".5" stop-color="#C46E40"/><stop offset="1" stop-color="#8A4424"/></linearGradient>
       <linearGradient id="water" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7FB0C2"/><stop offset="1" stop-color="#3F7488"/></linearGradient>
@@ -113,20 +113,56 @@
   var q = parseInt(new URLSearchParams(location.search).get('m'), 10);
   var mins = (q >= 1 && q <= 5) ? q : 5;
   var total, remain, running = false, endAt = 0, raf = 0, ctx = null;
-  var UP_FULL = 50, UP_EMPTY = 212, LO_EMPTY = 442, LO_FULL = 330;
+  var LO_EMPTY = 442, LO_FULL = 330;
   var timeEl = $('time'), statusEl = $('status'), startB = $('start'), pauseB = $('pause'), resetB = $('reset');
   var minBtns = Array.prototype.slice.call(document.querySelectorAll('#mins button'));
 
   function fmt(ms) { var s = Math.ceil(ms / 1000), m = Math.floor(s / 60); s %= 60; return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s; }
+  /* ---- physics: Torricelli's law. Outflow Q ~ sqrt(h); the jar is treated as round, so area A(y) ~ width(y)^2 ---- */
+  var SPOUT_Y = 209, UP_TOP = 50;               // spout outlet height and the full water line (SVG units)
+  function profile(path, y0, y1) {               // half-width^2 of a drawn outline for each 1-unit band y0..y1
+    var L = path.getTotalLength(), lo = {}, hi = {}, A = [];
+    for (var i = 0; i <= 4000; i++) { var p = path.getPointAtLength(L * i / 4000), y = Math.round(p.y);
+      lo[y] = Math.min(lo[y] === undefined ? 1e9 : lo[y], p.x); hi[y] = Math.max(hi[y] === undefined ? -1e9 : hi[y], p.x); }
+    var last = 0;
+    for (var y = y0; y <= y1; y++) { var w = (hi[y] !== undefined) ? (hi[y] - lo[y]) / 2 : last; last = w; A.push(w * w); }
+    return A;                                    // A[y - y0]
+  }
+  var upA = profile($('upShape'), UP_TOP, SPOUT_Y), loA = profile($('loShape'), LO_FULL - 30, LO_EMPTY);
+  var N = 500, LEVEL = new Float64Array(N + 1), VOUT = new Float64Array(N + 1), VTOT = 0;
+  (function build() {
+    // time to drain each band: dt = A dy / (k sqrt(h)); integrate exactly per band (2*(sqrt(h1)-sqrt(h2))) to handle h -> 0
+    var n = upA.length, T = [0], V = [0];
+    for (var i = 0; i < n; i++) {
+      var h1 = SPOUT_Y - (UP_TOP + i), h2 = Math.max(0, h1 - 1);
+      T.push(T[i] + upA[i] * 2 * (Math.sqrt(h1) - Math.sqrt(h2)));
+      V.push(V[i] + upA[i]);
+    }
+    var Tt = T[n]; VTOT = V[n];                  // k is calibrated implicitly: total time Tt maps to the chosen duration
+    for (var j = 0, i2 = 0; j <= N; j++) {
+      var tt = Tt * j / N; while (i2 < n - 1 && T[i2 + 1] < tt) i2++;
+      var fr = (tt - T[i2]) / ((T[i2 + 1] - T[i2]) || 1), lv = UP_TOP + i2 + Math.min(1, fr);
+      LEVEL[j] = lv; VOUT[j] = V[i2] + upA[i2] * Math.min(1, fr);
+    }
+  })();
+  // lower jar: same volume, level found from its own profile (filled from the bottom up); scaled so the full run reaches LO_FULL
+  var loCum = [0]; for (var y = loA.length - 1; y >= 0; y--) loCum.push(loCum[loCum.length - 1] + loA[y]);
+  var loCap = loCum[LO_EMPTY - LO_FULL];         // volume between the empty and full lines of the lower jar
+  var LO_SCALE = loCap / VTOT;                   // drawn lower jar is a different size; keep volumes proportional
+  function lowerLevel(v) { var t = v * LO_SCALE, i = 0; while (i < loCum.length - 1 && loCum[i + 1] < t) i++; var f = (t - loCum[i]) / ((loCum[i + 1] - loCum[i]) || 1); return LO_EMPTY - i - Math.min(1, f); }
+  function sample(arr, u) { var x = Math.max(0, Math.min(1, u)) * N, i = Math.floor(x), f = x - i; return i >= N ? arr[N] : arr[i] + (arr[i + 1] - arr[i]) * f; }
+  var H0 = SPOUT_Y - UP_TOP;
   function draw() {
-    var f = Math.max(0, Math.min(1, remain / total));            // fraction of water still in the upper jar
-    var uy = UP_EMPTY - (UP_EMPTY - UP_FULL) * f, ly = LO_EMPTY - (LO_EMPTY - LO_FULL) * (1 - f);
+    var u = 1 - Math.max(0, Math.min(1, remain / total));   // fraction of the duration elapsed (the clock stays linear)
+    var uy = sample(LEVEL, u), ly = lowerLevel(sample(VOUT, u)), h = Math.max(0, SPOUT_Y - uy), r = Math.sqrt(h / H0);
     $('upWater').setAttribute('y', uy); $('upWater').setAttribute('height', 230 - uy);
     $('loWater').setAttribute('y', ly); $('loWater').setAttribute('height', 450 - ly);
-    var s = $('stream');
-    s.setAttribute('d', 'M215 210 C' + (219 + 4 * f) + ' 222 ' + (218 + 2 * f) + ' 262 216 ' + ly);
-    s.setAttribute('stroke-width', (1.6 + 2 * Math.sqrt(f)).toFixed(2));   // the jet thins as the head of water drops
-    $('ripple').setAttribute('cy', ly);
+    // jet: exit speed ~ sqrt(2gh), so horizontal throw ~ sqrt(h); width ~ flow rate ~ sqrt(h)
+    var x0 = 214, y0 = 210, D = 20, pts = [];
+    for (var k = 0; k <= 16; k++) { var yy = y0 + (ly - y0) * k / 16; pts.push((x0 + D * r * Math.sqrt((yy - y0) / 92)).toFixed(1) + ' ' + yy.toFixed(1)); }
+    var s = $('stream'); s.setAttribute('d', 'M' + pts.join(' L'));
+    s.setAttribute('stroke-width', Math.max(0.5, 3.8 * r).toFixed(2));
+    $('ripple').setAttribute('cy', ly); $('ripple').setAttribute('cx', (x0 + D * r * Math.sqrt((ly - y0) / 92)).toFixed(1));
     $('streamG').style.display = (running && remain > 0) ? '' : 'none';
     timeEl.textContent = fmt(remain);
     document.title = (running ? fmt(remain) + ' · ' : '') + 'Klepsydra · AMNE 151';
@@ -180,7 +216,7 @@
   });
   resetB.addEventListener('click', function () { cancelAnimationFrame(raf); setDuration(mins); });
   minBtns.forEach(function (b) { b.addEventListener('click', function () { if (running) return; cancelAnimationFrame(raf); setDuration(+b.dataset.m); }); });
-  // test hook: ?at=0.4 shows the clock 40% of the way through (for screenshots)
+  // preview hook: ?at=0.4 shows the clock 40% of the way through (for screenshots)
   setDuration(mins);
   var at = parseFloat(new URLSearchParams(location.search).get('at'));
   if (at > 0 && at < 1) { remain = total * (1 - at); running = true; draw(); running = false; statusEl.textContent = 'The water flows…'; timeEl.textContent = fmt(remain); $('streamG').style.display = ''; }
