@@ -109,9 +109,9 @@ a:focus-visible{outline:3px solid var(--terra);outline-offset:2px}
 .guide-scroll:hover .bottom-rod,.guide-scroll:focus-visible .bottom-rod{transform:translateY(9px)}
 .guide-scroll:hover .guide-scroll-label,.guide-scroll:focus-visible .guide-scroll-label{background:var(--terra);color:#fff}
 .guide-scroll:focus-visible{outline:3px solid var(--terra);outline-offset:3px}
-.guide-scroll.treasury{left:5%;z-index:3}
+.guide-scroll.treasury{left:2%;width:12%}
 @keyframes scrollsway{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
-@media (max-width:760px){.scene-wrap{max-width:330px;margin:0 auto}.scene{max-width:240px;margin:0}.guide-scroll{left:72%;top:10%;width:28%}.guide-scroll-label{font-size:.75rem}.guide-scroll.treasury{left:0}}
+@media (max-width:760px){.scene-wrap{max-width:330px;margin:0 auto}.scene{max-width:240px;margin:0}.guide-scroll{left:72%;top:10%;width:28%}.guide-scroll-label{font-size:.75rem}.guide-scroll.treasury{left:3%;width:28%}}
 
 /* offering minigame */
 .offerings{position:absolute;left:18.5%;top:47%;width:13%;display:flex;flex-direction:column;gap:2%;z-index:2}
