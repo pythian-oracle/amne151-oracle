@@ -161,3 +161,5 @@ a:focus-visible{outline:3px solid var(--terra);outline-offset:2px}
 .field{margin:0 0 1.1rem}
 .klep-link{font-size:.7rem;color:var(--line);text-decoration:none;opacity:.6}
 .klep-link:hover,.klep-link:focus-visible{opacity:1;color:var(--muted)}
+
+.speech-red { color: #b00020; }

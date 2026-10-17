@@ -308,6 +308,18 @@ var CONFIG = {
   else { paintMusic(); musicBtn.addEventListener('click', function () { Music.toggle(); paintMusic(); }); }
 
   /* ---------- oracle speech ---------- */
+  // Text between ⟦ and ⟧ is shown in red.
+  function paintSpeech(str) {
+    speech.textContent = '';
+    var parts = str.split(/(⟦[^⟧]*⟧?)/);
+    parts.forEach(function (part) {
+      if (!part) return;
+      if (part.charAt(0) === '⟦') {
+        var sp = document.createElement('span'); sp.className = 'speech-red';
+        sp.textContent = part.replace(/[⟦⟧]/g, ''); speech.appendChild(sp);
+      } else speech.appendChild(document.createTextNode(part));
+    });
+  }
   function say(text, done) {
     clearInterval(typingTimer);
     fullText = text; afterTyping = done || null;
@@ -316,13 +328,13 @@ var CONFIG = {
     var i = 0; speech.textContent = ''; speech.classList.add('typing'); svg.classList.add('speaking');
     skipBtn.hidden = false;
     typingTimer = setInterval(function () {
-      i += 1; speech.textContent = fullText.slice(0, i);
+      i += 1; paintSpeech(fullText.slice(0, i));
       if (i >= fullText.length) finishTyping();
     }, CONFIG.TYPE_SPEED_MS);
   }
   function finishTyping() {
     clearInterval(typingTimer); typingTimer = null;
-    speech.textContent = fullText; speech.classList.remove('typing'); svg.classList.remove('speaking');
+    paintSpeech(fullText); speech.classList.remove('typing'); svg.classList.remove('speaking');
     skipBtn.hidden = true;
     if (afterTyping) { var f = afterTyping; afterTyping = null; f(); }
   }
@@ -394,7 +406,7 @@ var CONFIG = {
   }
   function freshIntro() {
     idx = -1; renderLaurels(-1); content.innerHTML = '';
-    say('Greetings, student of AMNE 151. I am Teresia, priestess of Minardos at Amnethya.\n\nBring me your idea for the Final Project, and I shall carry it into the temple for approval. Your idea need not be finished: a hunch or a half-formed thought is welcome.\n\nRemember, your scroll (1000–1500 words, about 4 to 6 pages double-spaced) is due Friday 23 October at 10 p.m., so do not tarry.', function () {
+    say('Greetings, student of AMNE 151. I am Teresia, priestess of Minardos at Amnethya.\n\nBring me your idea for the Final Project, and I shall carry it into the temple for approval. ⟦You can work with any primary source in Greek mythology, not just the ones in assigned reading.⟧\n\nRemember, your scroll (1000–1500 words, about 4 to 6 pages double-spaced) is due Friday 23 October at 10 p.m., so do not tarry.', function () {
       content.appendChild(el('p', { 'class': 'notice idea-note' }, IDEA_NOTE));
       var b = el('button', { type: 'button', 'class': 'btn primary', text: 'Approach the oracle' });
       b.addEventListener('click', function () { answers = {}; Music.start(); show(0); });
