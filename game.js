@@ -31,19 +31,19 @@ var CONFIG = {
     { key: 'tutorial', type: 'radio', required: true, label: 'Which tutorial are you in?',
       options: ['11 a.m.', '12 p.m.', '1 p.m.'],
       flavour: 'The god keeps careful records. At which hour do you gather with your fellows?' },
-    { key: 'idea', type: 'textarea', required: true, label: 'Your project idea, even if it is only a beginning. If an ancient (primary) source is sparking it, name it.',
-      placeholder: 'e.g. I keep coming back to the myth of Persephone… maybe something about the Odyssey’s Sirens…',
-      requiredMsg: 'Even a single half-formed thought will do. The oracle only needs a spark to begin.',
-      flavour: 'Now tell me what stirs in you. It need not be finished: the god welcomes a hunch, a myth that will not leave you, a thought only half-formed. Your offering will grow from the ancient sources, and your oracle will help you find them.' },
-    { key: 'format', type: 'text', required: true, label: 'What shape might your finished project take?',
-      placeholder: 'e.g. maybe a short story, a painting, a board game, a recipe… or “not sure yet”',
-      hint: 'Your best guess is enough. “Not sure yet” or two possibilities is fine; you can change your mind later.',
-      requiredMsg: 'A guess will do, or simply write “not sure yet.”',
-      flavour: 'Last: offerings came to Delphi in many shapes, bronze tripods, painted vases, hymns sung to the god. What shape might yours take? If you cannot yet see it, say so; the god is patient.' }
+    { key: 'idea', type: 'textarea', required: true, label: 'Your project idea. Name the ancient (primary) sources it draws on.',
+      placeholder: 'e.g. A series of watercolours of the Sirens episode, drawing on Homer’s Odyssey 12 and Sirens on Greek vases…',
+      requiredMsg: 'The oracle cannot carry an empty offering. Describe your idea.',
+      flavour: 'Now describe your idea: the figure or myth, what you plan to make, and the ancient sources it draws on. Be specific; the god favours a clear offering.' },
+    { key: 'format', type: 'text', required: true, label: 'What shape will your finished project take?',
+      placeholder: 'e.g. a short story, a painting, a board game, a recipe…',
+      requiredMsg: 'Tell the oracle what shape your project will take.',
+      flavour: 'Last: offerings came to Delphi in many shapes, bronze tripods, painted vases, hymns sung to the god. What shape will yours take?' }
   ];
 
   var answers = {};
   var idx = -1, typingTimer = null, fullText = '', afterTyping = null;
+  var BANNED = /medea|persephone|demeter/i;
   var IDEA_NOTE = 'Send your idea by <strong>Tue 20 Oct, 10 p.m.</strong>, the sooner the better.';
   var CAL_HTML = 'Add to calendar: <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text=AMNE%20151%20Final%20Project%20Proposal%20due&amp;dates=20261023T220000/20261023T221500&amp;ctz=America/Vancouver&amp;details=Submit%20on%20Canvas%20by%2010%20p.m." target="_blank" rel="noopener">Google</a> &middot; <a href="amne151-proposal-due.ics" download>Apple/Outlook (.ics)</a>';
   var $ = function (id) { return document.getElementById(id); };
@@ -497,6 +497,10 @@ var CONFIG = {
   function validate(q) {
     var v = answers[q.key] || '';
     if (q.required && !v) return q.type === 'radio' ? 'Please choose one option.' : (q.requiredMsg || 'This one is required. The oracle awaits your answer.');
+    if ((q.key === 'idea' || q.key === 'format') && BANNED.test(v)) {
+      alert('We already have too many projects on Medea, Demeter and Persephone, so no more will be accepted. Please choose a different figure or myth.');
+      return 'Medea, Demeter and Persephone are closed. Please choose a different figure or myth.';
+    }
     if (q.type === 'email' && v && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return 'That does not look like an email address (e.g. name@student.ubc.ca).';
     return '';
   }
