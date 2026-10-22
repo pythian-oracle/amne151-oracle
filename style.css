@@ -155,6 +155,8 @@ a:focus-visible{outline:3px solid var(--terra);outline-offset:2px}
 /* deadline countdowns */
 .countdown{display:flex;justify-content:center;flex-wrap:wrap;gap:.4rem .8rem;margin:.3rem auto .2rem;padding:0 1rem;font-size:.9rem}
 .countdown .cd{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--terra);border-radius:4px;padding:.2rem .6rem;color:var(--ink);font-variant-numeric:tabular-nums}
+.countdown a.cd-link{color:var(--terra);text-decoration:underline;border-left-color:var(--olive)}
+.countdown a.cd-link:hover{border-color:var(--gold)}
 .countdown .cd.passed{color:#A3461F;opacity:.85;border-left-color:var(--line)}
 .idea-note{font-size:.95rem}
 @media (max-width:760px){.countdown{flex-direction:column;align-items:center;gap:.3rem;font-size:.85rem}}
