@@ -48,3 +48,6 @@ Soft lyre-like music is created live by the browser (no audio files). It starts 
 Click (or Enter) the myrtle, lamb or ox left of the Pythia to offer it: it arcs into the flame, burns, and smoke rises above the temple, with a short Web Audio ritual cue (muted with the music toggle). The Pythia answers with short verbatim quotes from public-domain translations of syllabus works (Butler's Iliad/Odyssey; Evelyn-White's Homeric Hymns and Works and Days). Decorative only; it never touches the form.
 
 `amne151-proposal-due.ics` is the "Add to calendar" file for the proposal due date.
+
+## Syllabus
+`syllabus.html` (with `syllabus.js` and `syllabus-ai-meme.jpg`) is the course syllabus transcribed from Dr Minard's 2026 AMNE 151 syllabus PDF, with a contents list, a week-by-week schedule (the next lecture is highlighted by date) and collapsible long policy sections. It opens from the red **Syllabus** chest beside the Treasury in the temple scene, and from the footer. If the PDF changes, edit the matching text in `syllabus.html`.
