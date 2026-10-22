@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Myrtle sprig</title>
+  <defs>
+    <path id="lf" d="M0,0 C5,-6.5 15,-6.5 21,0 C15,6.5 5,6.5 0,0 Z"/>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#F6F1E7"/>
+  <path d="M12,56 C20,46 28,34 40,20" fill="none" stroke="#4A5530" stroke-width="3.2" stroke-linecap="round"/>
+  <g fill="#5F6B3A" stroke="#3E4826" stroke-width="1">
+    <use href="#lf" transform="translate(17,49) rotate(-112) scale(.78)"/>
+    <use href="#lf" transform="translate(17,49) rotate(6) scale(.78)"/>
+    <use href="#lf" transform="translate(25,38) rotate(-110) scale(.9)"/>
+    <use href="#lf" transform="translate(25,38) rotate(2) scale(.9)"/>
+    <use href="#lf" transform="translate(33,28) rotate(-108) scale(.82)"/>
+    <use href="#lf" transform="translate(33,28) rotate(-2) scale(.82)"/>
+  </g>
+  <g transform="translate(44,16)">
+    <g fill="#FFFDF8" stroke="#B8954E" stroke-width="1">
+      <circle cx="0" cy="-7" r="5.2"/>
+      <circle cx="6.7" cy="-2.2" r="5.2"/>
+      <circle cx="4.1" cy="5.7" r="5.2"/>
+      <circle cx="-4.1" cy="5.7" r="5.2"/>
+      <circle cx="-6.7" cy="-2.2" r="5.2"/>
+    </g>
+    <circle r="3.6" fill="#B8954E"/>
+    <g fill="#A3461F">
+      <circle cx="0" cy="-3.2" r=".9"/><circle cx="3" cy="-1" r=".9"/><circle cx="1.9" cy="2.6" r=".9"/>
+      <circle cx="-1.9" cy="2.6" r=".9"/><circle cx="-3" cy="-1" r=".9"/>
+    </g>
+  </g>
+</svg>
