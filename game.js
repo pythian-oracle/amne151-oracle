@@ -385,7 +385,7 @@ var CONFIG = {
 
   function closedIntro() {
     idx = -1; renderLaurels(-1); content.innerHTML = ''; clearDraft();
-    say('Greetings, student of AMNE 151. I am Teresia, priestess of Minardos at Amnethya.\n\nThe temple is no longer receiving Final Project ideas. Submit your proposal on Canvas by Friday 23 October at 10 p.m.\n\nIf you have questions, write to me at tesa@student.ubc.ca.', function () {
+    say('Greetings, student of AMNE 151. I am Teresia, priestess of Minardos at Amnethya.\n\nThe temple is no longer receiving Final Project ideas. Submit your proposal on Canvas by the deadline.\n\nIf you have questions, write to me at tesa@student.ubc.ca.', function () {
       var nav = el('div', { 'class': 'nav' });
       nav.appendChild(el('a', { 'class': 'btn primary', href: 'info.html' }, 'Project Proposal Guide'));
       nav.appendChild(el('a', { 'class': 'btn', href: 'syllabus.html' }, 'Syllabus'));
