@@ -13,6 +13,8 @@ var CONFIG = {
     format:       'entry.1010395158',
     idea:         'entry.1443301633'
   },
+  // Set to true to reopen the idea-submission questions.
+  SUBMISSIONS_OPEN: false,
   TYPE_SPEED_MS: 22,
   // Background lyre music (made in the browser, no audio files). Set to false to start muted.
   MUSIC_DEFAULT_ON: true,
@@ -381,7 +383,17 @@ var CONFIG = {
   }
   function clearDraft() { try { localStorage.removeItem(DRAFT_KEY); localStorage.removeItem(OLD_DRAFT_KEY); } catch (e) {} }
 
+  function closedIntro() {
+    idx = -1; renderLaurels(-1); content.innerHTML = ''; clearDraft();
+    say('Greetings, student of AMNE 151. I am Teresia, priestess of Minardos at Amnethya.\n\nThe temple is no longer receiving Final Project ideas. Submit your proposal on Canvas by Friday 23 October at 10 p.m.\n\nIf you have questions, write to me at tesa@student.ubc.ca.', function () {
+      var nav = el('div', { 'class': 'nav' });
+      nav.appendChild(el('a', { 'class': 'btn primary', href: 'info.html' }, 'Project Proposal Guide'));
+      nav.appendChild(el('a', { 'class': 'btn', href: 'syllabus.html' }, 'Syllabus'));
+      content.appendChild(nav);
+    });
+  }
   function intro() {
+    if (!CONFIG.SUBMISSIONS_OPEN) { closedIntro(); return; }
     var draft = loadDraft();
     if (draft) { resumeScreen(draft); return; }
     freshIntro();
