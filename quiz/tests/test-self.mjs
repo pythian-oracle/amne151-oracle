@@ -1,7 +1,7 @@
 /**
  * Self-quiz E2E — final order:
  * Paris mc, Ixion, Chiron, Schliemann open, Judgement open,
- * Hard Mode gate, Earth-born short, Atreus/Troy/Cadmus multi, cloud.
+ * Hard Mode gate, Earth-born multi-MC, Atreus/Troy/Argives multi, cloud.
  */
 import { spawn } from 'child_process';
 import { setTimeout as sleep } from 'timers/promises';
@@ -53,11 +53,9 @@ async function answerThroughPreGate(page) {
 }
 
 async function finishAfterGateNormal(page) {
-  // Earth-born short
-  await page.waitForSelector('#answer:visible');
-  await page.fill('#answer', 'Cecrops');
-  await checkAndNext(page);
-  // Atreus, Troy, Cadmus as normal MC
+  // Earth-born multi-MC
+  await answerMc(page, [0, 2, 4]);
+  // Atreus, Troy, Argives as normal MC
   await answerMc(page, [0, 1, 3, 5, 6]); // Atreus
   await answerMc(page, [0, 1, 3, 5, 6]); // Troy
   await answerMc(page, [0, 2, 4, 6, 8, 10, 11, 12]); // Argives
@@ -94,7 +92,7 @@ try {
 
   const review = await page.textContent('#selfReviewList');
   assert.ok(/Your answer/i.test(review), 'self review missing your answer');
-  assert.ok(/Ixion|Aphrodite|Argives|Troy|wrath|Nestor/i.test(review), 'self review missing content');
+  assert.ok(/Ixion|Aphrodite|Argives|Troy|wrath|Nestor|Cecrops|Erechtheus/i.test(review), 'self review missing content');
   assert.ok(!/Hard Mode\?/i.test(review), 'gate must not appear in review');
   assert.ok(/Correct|Incorrect|No mark|Partial/i.test(review), 'self review missing marks');
   await page.screenshot({ path: path.join(shotsDir, 'self-review.png'), fullPage: true });
@@ -120,16 +118,24 @@ try {
     await page2.waitForSelector('#hmGateBox:visible');
     await page2.click('#hmGateChooseType');
 
-    // Earth-born still short
-    await page2.waitForSelector('#answer:visible');
-    await page2.fill('#answer', 'Cecrops');
+    // Earth-born — Hard Mode typing (aliases)
+    await page2.waitForSelector('#hardMcBox textarea.hard-entry:visible');
+    assert.strictEqual(await page2.locator('button.hard-add').count(), 0, 'no Add button');
+    assert.strictEqual(await page2.locator('.hard-count-hint').count(), 0, 'no duplicate hard-count hint');
+    assert.ok(/Name as many as you can/i.test(await page2.textContent('#typeHint')));
+    // Empty sample text in the box
+    assert.strictEqual(await page2.getAttribute('#hardMcBox textarea.hard-entry', 'placeholder'), null);
+    await page2.fill(
+      '#hardMcBox textarea.hard-entry',
+      'Kekrops, Erechtheus Erichthonios'
+    );
     await page2.click('#checkBtn');
     await page2.waitForSelector('#feedback:not(.hidden)');
+    assert.ok(/Correct/i.test(await page2.textContent('#feedback')));
     await page2.click('#nextBtn');
 
     // Atreus — single hard textarea, space+comma mix
     await page2.waitForSelector('#hardMcBox textarea.hard-entry:visible');
-    assert.strictEqual(await page2.locator('button.hard-add').count(), 0, 'no Add button');
     assert.ok(/Name as many as you can/i.test(await page2.textContent('#typeHint')));
     await page2.fill(
       '#hardMcBox textarea.hard-entry',

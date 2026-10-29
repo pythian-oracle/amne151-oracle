@@ -92,21 +92,14 @@
   function renderHardMc(q) {
     var box = $('hardMcBox');
     var multi = !!q.multi;
-    var ta, hint;
+    var ta;
     box.innerHTML = '';
-    hint = document.createElement('p');
-    hint.className = 'hard-count-hint';
-    hint.textContent = multi
-      ? 'Name as many as you can — separate with commas or spaces.'
-      : 'Type your answer (spelling variants OK).';
-    box.appendChild(hint);
     ta = document.createElement('textarea');
     ta.className = 'hard-entry';
     ta.rows = multi ? 3 : 2;
     ta.autocomplete = 'off';
     ta.autocapitalize = 'words';
     ta.maxLength = 280;
-    ta.placeholder = multi ? 'e.g. Hector, Priam, Hecuba' : 'Answer';
     box.appendChild(ta);
     show(box);
     ta.focus();
@@ -130,8 +123,8 @@
     if (!box) return;
     html = '';
     html += '<div class="hm-gate-actions">';
-    html += '<button type="button" class="btn big choice" id="hmGateChooseMc">Take it easy</button>';
-    html += '<button type="button" class="btn big choice" id="hmGateChooseType">Hard Mode</button>';
+    html += '<button type="button" class="btn big choice" id="hmGateChooseMc">Multiple Choice</button>';
+    html += '<button type="button" class="btn big choice" id="hmGateChooseType">Freeform Entry</button>';
     html += '</div>';
     box.innerHTML = html;
     show(box);
@@ -166,7 +159,6 @@
       inp.type = 'text';
       inp.className = 'cloud-word';
       inp.maxLength = 40;
-      inp.placeholder = 'Word ' + (i + 1);
       inp.autocomplete = 'off';
       cloudBox.appendChild(inp);
     }
@@ -218,13 +210,14 @@
     if (k === 'open') {
       show(answerLong);
       answerLong.value = '';
+      answerLong.placeholder = '';
       $('typeHint').textContent = 'Open-ended — write briefly, then compare with the model answer.';
       answerLong.focus();
     } else if (k === 'mc') {
       if (hardMode) {
         $('typeHint').textContent = q.multi
-          ? 'Name as many as you can'
-          : 'Type your answer';
+          ? 'Name as many as you can — separate with commas or spaces.'
+          : 'Type your answer (spelling variants OK).';
         renderHardMc(q);
       } else {
         $('typeHint').textContent = q.multi
@@ -240,6 +233,7 @@
     } else {
       show(answer);
       answer.value = '';
+      answer.placeholder = '';
       $('typeHint').textContent = 'Short answer — spelling variants are OK.';
       answer.focus();
     }

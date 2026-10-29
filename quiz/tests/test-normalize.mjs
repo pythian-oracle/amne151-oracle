@@ -62,6 +62,12 @@ assert.strictEqual(N.displayQuestionNumber(quiz.questions, 4), 5);
 assert.strictEqual(N.displayQuestionNumber(quiz.questions, 5), null);
 assert.strictEqual(N.displayQuestionNumber(quiz.questions, 6), 6);
 assert.strictEqual(N.displayQuestionNumber(quiz.questions, 7), 7);
+const h3 = quiz.questions.find((q) => q.id === 'h3');
+assert.ok(h3 && h3.type === 'mc' && h3.multi, 'h3 must be multi MC');
+assert.deepStrictEqual(h3.correct, [0, 2, 4]);
+assert.ok(h3.aliases && h3.aliases.Cecrops && h3.aliases.Cecrops.includes('Kekrops'));
+const h3hm = N.gradeHardModeMc('Kekrops, Erechtheus Erichthonios', h3);
+assert(h3hm.exact, 'earth-born hard mode aliases should exact-match: ' + JSON.stringify(h3hm.mapped));
 
 console.log('normalize + quiz JSON: OK');
 

@@ -135,15 +135,21 @@ try {
 
   await hostNext(); // Q2 Chiron
   await hostNext(); // Q3 Schliemann open
+  await waitVisible(p1.page, '#answerLong');
+  // No sample text in open box; single prompt + one hint
+  const openPh = await p1.page.getAttribute('#answerLong', 'placeholder');
+  if (openPh) fail('open answerLong should have no placeholder, got: ' + openPh);
+  await p1.page.screenshot({ path: path.join(shotsDir, 'clean-open.png'), fullPage: true });
+  L('SHOT: clean-open.png');
   await hostNext(); // Q4 Judgement open
   await hostNext(); // Hard Mode gate
   await host.waitForSelector('#hmGateBox:visible', { timeout: 8000 });
   await host.click('#hmGateChooseMc'); // (a) keep normal MC
   await sleep(700);
-  // Earth-born
-  await answerShort(p1, 'Cecrops');
-  await answerShort(p2, 'Kekrops');
-  await answerShort(p3, 'Theseus');
+  // Earth-born multi-MC (post-gate, easy mode)
+  await answerMc(p1, [0, 2, 4]); // exact
+  await answerMc(p2, [0]); // partial Cecrops only
+  await answerMc(p3, [1]); // Theseus — wrong
   await hostNext(); // Atreus
   await answerMc(p1, [0, 1, 3, 5, 6]);
   await answerMc(p2, [0]);
@@ -176,7 +182,7 @@ try {
   const review = await host.textContent('#reviewList');
   L('REVIEW_SNIP: ' + (review || '').replace(/\s+/g, ' ').slice(0, 220));
   if (!/correct \(\d+%\)|response/i.test(review || '')) fail('review missing room stats');
-  if (!/Aphrodite|Argives|Danaans|Ixion|Achilles/i.test(review || '')) fail('review missing questions');
+  if (!/Aphrodite|Argives|Danaans|Ixion|Achilles|Cecrops|Erechtheus/i.test(review || '')) fail('review missing questions');
   // No student nicknames in review
   if (/Achilles|Hector/.test(review || '') && /pts/.test(review || '')) {
     // nicknames only ok if not as leaderboard - check no "pts"
@@ -201,7 +207,7 @@ try {
     await waitVisible(p.page, '#reviewPanel', 12000);
     const phoneReview = await p.page.textContent('#reviewList');
     L(p.name + '_REVIEW_SNIP: ' + (phoneReview || '').replace(/\s+/g, ' ').slice(0, 180));
-    if (!/Aphrodite|Argives|Danaans|Ixion/i.test(phoneReview || '')) {
+    if (!/Aphrodite|Argives|Danaans|Ixion|Cecrops|Erechtheus/i.test(phoneReview || '')) {
       fail(p.name + ' phone review missing questions');
     }
     if (!/Your answer:/i.test(phoneReview || '')) {
@@ -211,7 +217,7 @@ try {
       fail(p.name + ' phone review missing cloud words (or see-the-screen fallback)');
     }
     // Gate must not appear as a review item
-    if (/Take it easy|Hard Mode\?/i.test(phoneReview || '')) {
+    if (/Multiple Choice|Freeform Entry|Hard Mode\?/i.test(phoneReview || '')) {
       fail(p.name + ' phone review should skip hardModeGate');
     }
   }

@@ -623,8 +623,8 @@
     if (!box) return;
     html = '';
     html += '<div class="hm-gate-actions">';
-    html += '<button type="button" class="btn big choice" id="hmGateChooseMc">Take it easy</button>';
-    html += '<button type="button" class="btn big choice" id="hmGateChooseType">Hard Mode</button>';
+    html += '<button type="button" class="btn big choice" id="hmGateChooseMc">Multiple Choice</button>';
+    html += '<button type="button" class="btn big choice" id="hmGateChooseType">Freeform Entry</button>';
     html += '</div>';
     box.innerHTML = html;
     show(box);

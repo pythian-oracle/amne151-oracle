@@ -87,19 +87,21 @@ try {
     await host.click('#hmGateChooseType'); // (b)
     await sleep(900);
 
-    // Earth-born short — skip past it to Atreus MC
-    await phone.waitForSelector('#answer:visible', { timeout: 15000 });
-    await host.click('#nextBtn');
-    await sleep(900);
-
-    // Atreus — Hard Mode single textarea
+    // Earth-born multi-MC — Hard Mode typing with aliases
     await phone.waitForSelector('#hardMcBox textarea.hard-entry:visible', { timeout: 15000 });
     if (await phone.locator('button.hard-add').count()) throw new Error('Add button must be gone');
+    if (await phone.locator('.hard-count-hint').count()) throw new Error('duplicate hard-count hint must be gone');
     const hint = await phone.textContent('#typeHint');
     if (!/Name as many as you can/i.test(hint || '')) throw new Error('bad hint: ' + hint);
+    // No sample text in the box
+    const ph = await phone.getAttribute('#hardMcBox textarea.hard-entry', 'placeholder');
+    if (ph) throw new Error('hard-entry should have no placeholder, got: ' + ph);
+    // Clean HM screenshot (empty box, single instruction)
+    await phone.screenshot({ path: path.join(shotsDir, 'clean-hm.png'), fullPage: true });
+    console.log('SHOT clean-hm.png');
     await phone.fill(
       '#hardMcBox textarea.hard-entry',
-      'Agamemnon Menelaos Orestes Klytaimnestra Elektra'
+      'Kekrops, Erechtheus Erichthonios'
     );
     await phone.screenshot({ path: path.join(shotsDir, 'hm-gate-phone.png'), fullPage: true });
     console.log('SHOT hm-gate-phone.png');
@@ -119,7 +121,7 @@ try {
     await sleep(800);
     const reveal = await host.textContent('#revealBox');
     console.log('REVEAL_B', (reveal || '').replace(/\s+/g, ' ').slice(0, 140));
-    if (!/1\/1 correct/i.test(reveal || '')) throw new Error('expected 1/1 correct in hard mode');
+    if (!/1\/1 correct/i.test(reveal || '')) throw new Error('expected 1/1 correct for earth-born hard mode: ' + reveal);
 
     await host.click('#endBtn');
     await sleep(1000);
@@ -147,16 +149,12 @@ try {
     await host.click('#hmGateChooseMc'); // (a)
     await sleep(900);
 
-    // skip Earth-born to Atreus
-    await phone.waitForSelector('#answer:visible', { timeout: 15000 });
-    await host.click('#nextBtn');
-    await sleep(900);
-
+    // Earth-born multi-MC — tap choices (Multiple Choice)
     await phone.waitForSelector('#mcBox:visible', { timeout: 15000 });
     if (await phone.locator('#hardMcBox:visible').count()) {
       throw new Error('branch (a) must show tap MC, not hard text box');
     }
-    for (const ix of [0, 1, 3, 5, 6]) {
+    for (const ix of [0, 2, 4]) {
       await phone.click(`.tap-option[data-index="${ix}"]`);
     }
     await phone.click('#submitBtn');

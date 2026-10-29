@@ -188,21 +188,14 @@
   function renderHardMc(q) {
     var box = $('hardMcBox');
     var multi = !!q.multi;
-    var ta, hint;
+    var ta;
     box.innerHTML = '';
-    hint = document.createElement('p');
-    hint.className = 'hard-count-hint';
-    hint.textContent = multi
-      ? 'Name as many as you can — separate with commas or spaces.'
-      : 'Type your answer (spelling variants OK).';
-    box.appendChild(hint);
     ta = document.createElement('textarea');
     ta.className = 'hard-entry';
     ta.rows = multi ? 3 : 2;
     ta.autocomplete = 'off';
     ta.autocapitalize = 'words';
     ta.maxLength = 280;
-    ta.placeholder = multi ? 'e.g. Hector, Priam, Hecuba' : 'Answer';
     box.appendChild(ta);
     show(box);
     ta.focus();
@@ -228,7 +221,6 @@
       inp = document.createElement('input');
       inp.type = 'text';
       inp.maxLength = 40;
-      inp.placeholder = 'Word ' + (i + 1);
       inp.autocomplete = 'off';
       box.appendChild(inp);
     }
@@ -267,15 +259,16 @@
       $('submitBtn').disabled = false;
       $('submitBtn').textContent = 'Send answer';
       if (k === 'open') {
-        $('typeHint').textContent = 'Write a short answer.';
+        $('typeHint').textContent = 'Open-ended — write briefly.';
         show($('answerLong'));
         $('answerLong').value = '';
+        $('answerLong').placeholder = '';
         $('answerLong').focus();
       } else if (k === 'mc') {
         if (hardMode) {
           $('typeHint').textContent = q.multi
-            ? 'Name as many as you can'
-            : 'Type your answer';
+            ? 'Name as many as you can — separate with commas or spaces.'
+            : 'Type your answer (spelling variants OK).';
           renderHardMc(q);
         } else {
           $('typeHint').textContent = q.multi ? 'Tap all that apply.' : 'Tap one option.';
@@ -285,9 +278,10 @@
         $('typeHint').textContent = 'Up to ' + (q.max || 3) + ' short words.';
         renderCloud(q);
       } else {
-        $('typeHint').textContent = 'Type a short answer.';
+        $('typeHint').textContent = 'Short answer — spelling variants OK.';
         show($('answer'));
         $('answer').value = '';
+        $('answer').placeholder = '';
         $('answer').focus();
       }
       renderedQ = qIndex;

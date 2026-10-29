@@ -76,11 +76,11 @@
       "choices": [
         {
           "id": "mc",
-          "label": "Take it easy"
+          "label": "Multiple Choice"
         },
         {
           "id": "type",
-          "label": "Hard Mode"
+          "label": "Freeform Entry"
         }
       ],
       "revealNote": null
@@ -88,16 +88,34 @@
     {
       "id": "h3",
       "section": "Heroes",
-      "type": "short",
-      "prompt": "Name an earth-born ancestor-hero of Athens.",
-      "accepted": [
+      "type": "mc",
+      "multi": true,
+      "prompt": "Which of these are earth-born ancestor-heroes of Athens?",
+      "options": [
         "Cecrops",
-        "Kekrops",
+        "Theseus",
         "Erechtheus",
+        "Cadmus",
         "Erichthonius",
-        "Erichthonios"
+        "Aegeus"
       ],
-      "revealNote": null
+      "correct": [
+        0,
+        2,
+        4
+      ],
+      "aliases": {
+        "Cecrops": [
+          "Kekrops"
+        ],
+        "Erichthonius": [
+          "Erichthonios"
+        ],
+        "Erechtheus": [
+          "Erechtheos"
+        ]
+      },
+      "revealNote": "Cecrops, Erechtheus and Erichthonius were born from the earth of Attica. Theseus and Aegeus are Athenian kings but not earth-born; Cadmus founded Thebes."
     },
     {
       "id": "i0b",
