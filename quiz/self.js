@@ -129,10 +129,9 @@
     var html;
     if (!box) return;
     html = '';
-    html += '<p class="hint hm-gate-hint">Choose how later multiple-choice questions work. This does not count toward your score.</p>';
     html += '<div class="hm-gate-actions">';
-    html += '<button type="button" class="btn primary big" id="hmGateChooseMc">(a) Multiple choice</button>';
-    html += '<button type="button" class="btn big" id="hmGateChooseType">(b) Type the answer</button>';
+    html += '<button type="button" class="btn big choice" id="hmGateChooseMc">Take it easy</button>';
+    html += '<button type="button" class="btn big choice" id="hmGateChooseType">LFG</button>';
     html += '</div>';
     box.innerHTML = html;
     show(box);

@@ -149,3 +149,10 @@ textarea{min-height:5.5rem;resize:vertical}
 .hard-mc{display:flex;flex-direction:column;gap:.45rem;margin:.4rem 0}
 .hard-mc textarea.hard-entry,.hard-mc input.hard-entry{width:100%;font:inherit;padding:.65rem .75rem;border:1.5px solid #8C7F67;border-radius:4px;background:#fff;resize:vertical;min-height:2.6rem}
 .hard-mc .hard-count-hint{color:var(--muted);font-size:.92rem;margin:0}
+/* Answer choices: olive, distinct from terracotta Next/primary */
+.btn.choice{background:var(--olive);border-color:var(--olive);color:#fff}
+.btn.choice:hover{background:#4C5630;border-color:#4C5630}
+.mc-option{border-color:#B9BE9C;background:#F7F8EF}
+.mc-option:hover{border-color:var(--olive)}
+.mc-option input{accent-color:var(--olive)}
+.mc-option:has(input:checked){border-color:var(--olive);background:#E6EAD2}

@@ -76,11 +76,11 @@
       "choices": [
         {
           "id": "mc",
-          "label": "(a) Multiple choice"
+          "label": "Take it easy"
         },
         {
           "id": "type",
-          "label": "(b) Type the answer"
+          "label": "LFG"
         }
       ],
       "revealNote": null
