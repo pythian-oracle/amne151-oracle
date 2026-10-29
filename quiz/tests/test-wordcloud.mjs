@@ -8,6 +8,15 @@ import fs from 'fs';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { createRequire } from 'module';
 
+/** Merged button: press once to reveal (if needed), again to advance. */
+async function advance(page, wait = 450) {
+  const t = (await page.textContent('#nextBtn')) || '';
+  if (/Reveal/i.test(t)) { await page.click('#nextBtn'); await new Promise(r => setTimeout(r, wait)); }
+  await page.click('#nextBtn');
+  await new Promise(r => setTimeout(r, wait));
+}
+
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..', '..');
 const shotsDir = '/workspace/AMNE151/quiz-shots';
@@ -48,14 +57,14 @@ try {
 
   // Advance to cloud (index 10): 5 next → gate → choose (a) → 4 next → cloud
   for (let i = 0; i < 5; i++) {
-    await host.click('#nextBtn');
+    await advance(host);
     await sleep(350);
   }
   await host.waitForSelector('#hmGateBox:visible', { timeout: 8000 });
   await host.click('#hmGateChooseMc');
   await sleep(450);
   for (let i = 0; i < 4; i++) {
-    await host.click('#nextBtn');
+    await advance(host);
     await sleep(350);
   }
   const prompt = await host.textContent('#prompt');

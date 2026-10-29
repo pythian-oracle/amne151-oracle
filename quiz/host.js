@@ -517,6 +517,7 @@
       return;
     }
     clearHardModeGateUI();
+    updateAdvanceLabel(qIndex);
     $('qPos').textContent = total && disp != null ? (disp + '/' + total) : '—';
     $('phaseLabel').textContent = (currentMeta && currentMeta.phase) ? currentMeta.phase : '—';
     if (q) {
@@ -631,7 +632,6 @@
     if (barsWrap) hide(barsWrap);
     hide($('revealBox'));
     if ($('nextBtn')) hide($('nextBtn'));
-    if ($('revealBtn')) hide($('revealBtn'));
     $('hmGateChooseMc').onclick = function () { chooseHardModeGate(false); };
     $('hmGateChooseType').onclick = function () { chooseHardModeGate(true); };
   }
@@ -642,7 +642,6 @@
     if (box) { hide(box); box.innerHTML = ''; }
     if (barsWrap) show(barsWrap);
     if ($('nextBtn')) show($('nextBtn'));
-    if ($('revealBtn')) show($('revealBtn'));
   }
 
   function createRoom() {
@@ -697,6 +696,26 @@
     next.hostUid = fb.auth.currentUser.uid;
     next.hostToken = hostToken;
     return fb.set(fb.ref('rooms/' + roomCode + '/meta'), next);
+  }
+
+  /** One button: first press reveals the answer, second press moves on. */
+  function updateAdvanceLabel(qIndex) {
+    var btn = $('nextBtn');
+    if (!btn || !quiz) return;
+    if (!(currentMeta && currentMeta.revealed)) {
+      btn.textContent = 'Reveal correct';
+    } else if (qIndex >= quiz.questions.length - 1) {
+      btn.textContent = 'Final leaderboard';
+    } else {
+      btn.textContent = 'Next question';
+    }
+  }
+
+  function onAdvance() {
+    if (!quiz || !currentMeta) return;
+    if (isGateQuestion(questionAt(Number(currentMeta.currentQ) || 0))) return;
+    if (!currentMeta.revealed) { onReveal(); return; }
+    onNext();
   }
 
   function onNext() {
@@ -804,8 +823,7 @@
   }
 
   $('startRoomBtn').addEventListener('click', createRoom);
-  $('nextBtn').addEventListener('click', onNext);
-  $('revealBtn').addEventListener('click', onReveal);
+  $('nextBtn').addEventListener('click', onAdvance);
   if ($('boardBtn')) $('boardBtn').addEventListener('click', onBoard);
   if ($('reviewBtn')) $('reviewBtn').addEventListener('click', onReview);
   if ($('reviewFromPodiumBtn')) $('reviewFromPodiumBtn').addEventListener('click', onReview);

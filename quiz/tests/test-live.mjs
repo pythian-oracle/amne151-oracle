@@ -10,6 +10,15 @@ import fs from 'fs';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { createRequire } from 'module';
 
+/** Merged button: press once to reveal (if needed), again to advance. */
+async function advance(page, wait = 450) {
+  const t = (await page.textContent('#nextBtn')) || '';
+  if (/Reveal/i.test(t)) { await page.click('#nextBtn'); await new Promise(r => setTimeout(r, wait)); }
+  await page.click('#nextBtn');
+  await new Promise(r => setTimeout(r, wait));
+}
+
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const quizDir = path.resolve(__dirname, '..');
 const root = path.resolve(quizDir, '..');
@@ -113,7 +122,7 @@ try {
     await p.page.click('#submitBtn');
     await sleep(700);
   }
-  async function hostNext() { await host.click('#nextBtn'); await sleep(700); }
+  async function hostNext() { await advance(host, 700); }
 
   // Q0 mc single
   L('Q0: ' + (await host.textContent('#prompt')).slice(0, 60));
@@ -121,7 +130,7 @@ try {
   await sleep(1200);
   await answerMc(p2, [1]);
   await answerMc(p3, [2]);
-  await host.click('#revealBtn');
+  await host.click('#nextBtn'); // reveal
   await sleep(800);
   const reveal0 = await host.textContent('#revealBox');
   L('REVEAL0: ' + (reveal0 || '').replace(/\s+/g, ' ').slice(0, 120));
@@ -170,7 +179,7 @@ try {
   await answerCloud(p2, ['anger']);
   await answerCloud(p3, ['rage']);
 
-  await host.click('#revealBtn');
+  await host.click('#nextBtn'); // reveal
   await sleep(1000);
   await host.click('#boardBtn');
   await sleep(500);

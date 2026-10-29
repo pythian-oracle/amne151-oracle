@@ -9,6 +9,15 @@ import fs from 'fs';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { createRequire } from 'module';
 
+/** Merged button: press once to reveal (if needed), again to advance. */
+async function advance(page, wait = 450) {
+  const t = (await page.textContent('#nextBtn')) || '';
+  if (/Reveal/i.test(t)) { await page.click('#nextBtn'); await new Promise(r => setTimeout(r, wait)); }
+  await page.click('#nextBtn');
+  await new Promise(r => setTimeout(r, wait));
+}
+
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..', '..');
 const shotsDir = '/workspace/AMNE151/quiz-shots';
@@ -40,7 +49,7 @@ async function waitLive(host) {
 /** Advance host past Q0–Q4 onto the Hard Mode gate (index 5). */
 async function advanceToGate(host) {
   for (let i = 0; i < 5; i++) {
-    await host.click('#nextBtn');
+    await advance(host);
     await sleep(450);
   }
   await host.waitForSelector('#hmGateBox:visible', { timeout: 10000 });
@@ -117,7 +126,7 @@ try {
       throw new Error('expected hard-mode hidden choices hint on host: ' + barsHint);
     }
 
-    await host.click('#revealBtn');
+    await host.click('#nextBtn'); // reveal
     await sleep(800);
     const reveal = await host.textContent('#revealBox');
     console.log('REVEAL_B', (reveal || '').replace(/\s+/g, ' ').slice(0, 140));
