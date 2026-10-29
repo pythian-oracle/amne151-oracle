@@ -383,7 +383,11 @@
       cloud.innerHTML = '';
     }
 
-    if (k === 'mc') {
+    if (k === 'mc' && currentMeta && currentMeta.hardMode && !revealed) {
+      show(bars);
+      bars.innerHTML = '<p class="hint hard-hidden">Hard Mode: students are typing their answers. ' +
+        'Choices stay hidden until you reveal.</p>';
+    } else if (k === 'mc') {
       show(bars);
       opts = q.options || [];
       counts = QuizNormalize.tallyMc(currentAnswers || {}, opts.length);
