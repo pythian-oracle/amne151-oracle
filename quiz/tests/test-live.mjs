@@ -127,27 +127,29 @@ try {
   L('REVEAL0: ' + (reveal0 || '').replace(/\s+/g, ' ').slice(0, 120));
   if (!/\d+\/\d+ correct/i.test(reveal0 || '')) fail('reveal missing n/m correct stats');
 
-  await hostNext(); // Q1 Atreus
-  await answerMc(p1, [0, 1, 3, 5, 6]);
-  await answerMc(p2, [0]);
-  await answerMc(p3, [0, 1, 3, 5, 6]);
-  await hostNext(); // Q2 Troy
-  await answerMc(p1, [0, 1, 3, 5, 6]);
-  await answerMc(p2, [0, 1]);
-  await answerMc(p3, [2, 4]); // wrong
-  await hostNext(); // Q3 Cadmus
-  await answerMc(p1, [0, 1, 3, 5]);
-  await answerMc(p2, [0, 2]);
-  await answerMc(p3, [0, 1, 3, 5]);
-
-  await hostNext(); // Q4 Ixion short
+  await hostNext(); // Q1 Ixion short
   await answerShort(p1, 'Ixion');
   await sleep(2000);
   await answerShort(p2, 'it was Ixion');
   await answerShort(p3, 'Sisyphus');
 
-  // Skip to cloud: next through h2,h3,open,open
-  for (let i = 0; i < 5; i++) await hostNext();
+  await hostNext(); // Q2 Chiron
+  await hostNext(); // Q3 Athens hero
+  await hostNext(); // Q4 Atreus
+  await answerMc(p1, [0, 1, 3, 5, 6]);
+  await answerMc(p2, [0]);
+  await answerMc(p3, [0, 1, 3, 5, 6]);
+  await hostNext(); // Q5 Troy
+  await answerMc(p1, [0, 1, 3, 5, 6]);
+  await answerMc(p2, [0, 1]);
+  await answerMc(p3, [2, 4]); // wrong
+  await hostNext(); // Q6 Cadmus
+  await answerMc(p1, [0, 1, 3, 5]);
+  await answerMc(p2, [0, 2]);
+  await answerMc(p3, [0, 1, 3, 5]);
+
+  // Skip to cloud: next through open, open, cloud
+  for (let i = 0; i < 3; i++) await hostNext();
   L('Q9: ' + (await host.textContent('#prompt')).slice(0, 60));
   await answerCloud(p1, ['wrath', 'pride']);
   await answerCloud(p2, ['anger']);

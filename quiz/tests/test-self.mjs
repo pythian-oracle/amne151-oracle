@@ -48,23 +48,23 @@ try {
 
   // Q0 mc single Aphrodite
   await answerMc([2]);
-  // Q1 Atreus multi
-  await answerMc([0, 1, 3, 5, 6]);
-  // Q2 Troy multi
-  await answerMc([0, 1, 3, 5, 6]);
-  // Q3 Cadmus multi
-  await answerMc([0, 1, 3, 5]);
-
-  // Q4 Ixion
+  // Q1 Ixion
   await page.waitForSelector('#answer:visible');
   await page.fill('#answer', 'it was Ixion');
   await checkAndNext();
-  // Q5 Chiron
+  // Q2 Chiron
   await page.fill('#answer', 'Cheiron');
   await checkAndNext();
-  // Q6 Cecrops
+  // Q3 Cecrops
   await page.fill('#answer', 'Cecrops');
   await checkAndNext();
+
+  // Q4 Atreus multi
+  await answerMc([0, 1, 3, 5, 6]);
+  // Q5 Troy multi
+  await answerMc([0, 1, 3, 5, 6]);
+  // Q6 Cadmus multi
+  await answerMc([0, 1, 3, 5]);
 
   // Q7 open
   await page.waitForSelector('#answerLong:visible');
@@ -116,7 +116,15 @@ try {
     await page2.waitForSelector('#feedback:not(.hidden)');
     assert.ok(/Correct/i.test(await page2.textContent('#feedback')));
     await page2.click('#nextBtn');
-    // Q1 Atreus with aliases
+    // Q1-Q3 short answers (Ixion, Chiron, Cecrops)
+    for (const ans of ['Ixion', 'Chiron', 'Cecrops']) {
+      await page2.waitForSelector('#answer:visible');
+      await page2.fill('#answer', ans);
+      await page2.click('#checkBtn');
+      await page2.waitForSelector('#feedback:not(.hidden)');
+      await page2.click('#nextBtn');
+    }
+    // Q4 Atreus with aliases
     await page2.waitForSelector('#hardMcBox:visible');
     const entries = page2.locator('#hardMcBox .hard-entries input');
     await entries.nth(0).fill('Klytaimnestra, Elektra, Agamemnon');

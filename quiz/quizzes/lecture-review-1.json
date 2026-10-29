@@ -30,6 +30,41 @@
       }
     },
     {
+      "id": "h1",
+      "section": "Heroes",
+      "type": "short",
+      "prompt": "Whose punishment was being tied to a wheel for eternity?",
+      "accepted": [
+        "Ixion"
+      ],
+      "revealNote": null
+    },
+    {
+      "id": "h2",
+      "section": "Heroes",
+      "type": "short",
+      "prompt": "Who is the civilized centaur, teacher and healer?",
+      "accepted": [
+        "Chiron",
+        "Cheiron"
+      ],
+      "revealNote": null
+    },
+    {
+      "id": "h3",
+      "section": "Heroes",
+      "type": "short",
+      "prompt": "Name an earth-born ancestor-hero of Athens.",
+      "accepted": [
+        "Cecrops",
+        "Kekrops",
+        "Erechtheus",
+        "Erichthonius",
+        "Erichthonios"
+      ],
+      "revealNote": null
+    },
+    {
       "id": "i0b",
       "section": "Iliad",
       "type": "mc",
@@ -139,41 +174,6 @@
           "Oidipus"
         ]
       }
-    },
-    {
-      "id": "h1",
-      "section": "Heroes",
-      "type": "short",
-      "prompt": "Whose punishment was being tied to a wheel for eternity?",
-      "accepted": [
-        "Ixion"
-      ],
-      "revealNote": null
-    },
-    {
-      "id": "h2",
-      "section": "Heroes",
-      "type": "short",
-      "prompt": "Who is the civilized centaur, teacher and healer?",
-      "accepted": [
-        "Chiron",
-        "Cheiron"
-      ],
-      "revealNote": null
-    },
-    {
-      "id": "h3",
-      "section": "Heroes",
-      "type": "short",
-      "prompt": "Name an earth-born ancestor-hero of Athens.",
-      "accepted": [
-        "Cecrops",
-        "Kekrops",
-        "Erechtheus",
-        "Erichthonius",
-        "Erichthonios"
-      ],
-      "revealNote": null
     },
     {
       "id": "i4",
