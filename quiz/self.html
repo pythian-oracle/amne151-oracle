@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Sphinx — self-quiz · AMNE 151</title>
+  <link rel="stylesheet" href="quiz.css">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="top">
+    <p class="course">UBC AMNE 151</p>
+    <h1>The Sphinx asks…</h1>
+    <p class="sub">Home self-quiz · answers stay on this device</p>
+  </header>
+  <main id="main" class="wrap">
+    <div id="loadError" class="notice warn hidden" role="alert"></div>
+    <section id="intro" class="panel">
+      <p class="scroll speech">Before the gates of Thebes, the Sphinx poses her riddles. Answer at your own pace; she will tell you at once whether you have spoken truly. Nothing leaves this browser.</p>
+      <p id="quizMeta" class="hint"></p>
+      <div class="nav">
+        <button type="button" class="btn primary" id="startBtn">Begin</button>
+      </div>
+    </section>
+    <section id="quiz" class="panel hidden" aria-live="polite">
+      <p class="progress" id="progress"></p>
+      <span class="badge" id="sectionBadge"></span>
+      <div class="q-label" id="prompt"></div>
+      <p class="hint" id="typeHint"></p>
+      <input type="text" id="answer" autocomplete="off" autocapitalize="words" enterkeyhint="done">
+      <textarea id="answerLong" class="hidden" rows="4" autocomplete="off"></textarea>
+      <div id="mcBox" class="mc-box hidden" role="group"></div>
+      <div id="cloudBox" class="cloud-inputs hidden"></div>
+      <div id="feedback" class="feedback hidden" role="status"></div>
+      <div class="nav">
+        <button type="button" class="btn primary" id="checkBtn">Check answer</button>
+        <button type="button" class="btn hidden" id="nextBtn">Next</button>
+      </div>
+    </section>
+    <section id="done" class="panel hidden" aria-live="polite">
+      <h2 style="font-weight:normal;margin-top:0">The Sphinx nods</h2>
+      <p id="scoreLine"></p>
+      <p class="hint">Your answers were not sent anywhere. Retry to practise again.</p>
+      <div class="nav">
+        <button type="button" class="btn primary" id="retryBtn">Retry quiz</button>
+        <a class="btn" href="self.html">Pick another quiz</a>
+      </div>
+    </section>
+  </main>
+  <footer class="foot">AMNE 151 · Sphinx self-quiz · no accounts · nothing stored on a server</footer>
+  <script src="normalize.js"></script>
+  <script src="self.js"></script>
+</body>
+</html>

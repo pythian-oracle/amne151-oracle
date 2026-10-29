@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sphinx — presenter · AMNE 151</title>
+  <link rel="stylesheet" href="quiz.css">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="top">
+    <p class="course">UBC AMNE 151 · Presenter</p>
+    <h1>The Sphinx asks…</h1>
+    <p class="sub">Classroom live quiz · project this screen</p>
+  </header>
+  <div id="configBanner" class="notice warn hidden" role="alert"></div>
+  <main id="main" class="wrap">
+    <section id="setup" class="panel">
+      <p class="scroll speech">Choose a riddle-set, open a room, and cast the QR code upon the wall. Students answer from their phones — no accounts.</p>
+      <div class="setup-row">
+        <label for="quizSelect"><strong>Quiz</strong></label>
+        <select id="quizSelect">
+          <option value="lecture-review-1">Heroes &amp; Iliad — lecture review</option>
+        </select>
+        <button type="button" class="btn primary" id="startRoomBtn">Open room</button>
+      </div>
+      <p class="hint">A secret host link is kept in this browser so you can refresh without losing control. Do not share the host link with students.</p>
+    </section>
+
+    <section id="live" class="hidden">
+      <div class="host-grid">
+        <aside class="panel qr-box">
+          <p class="badge">Scan to join</p>
+          <div id="qr" aria-hidden="true"></div>
+          <div class="room-code" id="roomCodeDisplay">————</div>
+          <p class="join-url" id="joinUrl"></p>
+          <p class="hint" style="margin-top:.6rem">One section at a time · anonymous</p>
+        </aside>
+        <div class="panel">
+          <div class="stats">
+            <div class="stat"><b id="respCount">0</b> responses</div>
+            <div class="stat"><b id="qPos">—</b> question</div>
+            <div class="stat"><span id="phaseLabel">Lobby</span></div>
+          </div>
+          <span class="badge" id="sectionBadge">—</span>
+          <p class="q-label" id="prompt">Opening the gates…</p>
+          <div id="revealBox" class="notice ok hidden"></div>
+          <div id="barsWrap">
+            <h3 style="font-weight:normal;font-size:1.1rem;margin:.4rem 0">Live answers</h3>
+            <div class="bars" id="bars"></div>
+            <div class="cloud hidden" id="cloud" aria-label="Word cloud"></div>
+            <div class="open-cards hidden" id="openCards" aria-label="Open answers"></div>
+          </div>
+          <div class="host-controls">
+            <button type="button" class="btn primary" id="nextBtn">Next question</button>
+            <button type="button" class="btn" id="revealBtn">Reveal correct</button>
+            <button type="button" class="btn" id="boardBtn">Leaderboard</button>
+            <button type="button" class="btn danger" id="endBtn">End &amp; wipe</button>
+          </div>
+        </div>
+      </div>
+      <section id="boardPanel" class="panel hidden" style="margin-top:1rem">
+        <h2 style="font-weight:normal;margin:0 0 .6rem" id="boardTitle">Leaderboard</h2>
+        <ol class="leaderboard" id="leaderboard"></ol>
+        <div id="podium" class="podium hidden"></div>
+      </section>
+    </section>
+  </main>
+  <footer class="foot">AMNE 151 · Sphinx presenter · Firebase project amne151-sphinx</footer>
+  <script src="vendor/qrcode.min.js"></script>
+  <script src="normalize.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="firebase-app.js"></script>
+  <script src="host.js"></script>
+</body>
+</html>

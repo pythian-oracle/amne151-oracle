@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Sphinx — join · AMNE 151</title>
+  <link rel="stylesheet" href="quiz.css">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="top">
+    <p class="course">UBC AMNE 151</p>
+    <h1>The Sphinx asks…</h1>
+    <p class="sub">Live classroom · anonymous</p>
+  </header>
+  <div id="configBanner" class="notice warn hidden" role="alert"></div>
+  <main id="main" class="play-wrap">
+    <section id="joinPanel" class="panel">
+      <label class="q-label" for="nickInput">Nickname</label>
+      <input type="text" id="nickInput" maxlength="20" autocomplete="nickname" placeholder="e.g. PythiaFan">
+      <label class="q-label" for="roomInput" style="margin-top:.8rem">Room code</label>
+      <input type="text" id="roomInput" maxlength="8" autocapitalize="characters" autocomplete="off" placeholder="e.g. AB7K">
+      <div class="nav">
+        <button type="button" class="btn primary big" id="joinBtn">Enter</button>
+      </div>
+      <p class="hint">Use a fun nickname — not your real name. No account needed.</p>
+    </section>
+
+    <section id="waitPanel" class="panel waiting hidden">
+      <div class="glyph" aria-hidden="true">🐈‍⬛</div>
+      <p id="waitText">Waiting for the Sphinx to pose a question…</p>
+      <p class="hint">Room <strong id="waitRoom"></strong> · <span id="waitNick"></span></p>
+      <div class="my-score" id="waitScore">Score 0</div>
+    </section>
+
+    <section id="answerPanel" class="panel hidden">
+      <div class="my-score" id="myScore">Score 0</div>
+      <p class="progress" id="progress"></p>
+      <span class="badge" id="sectionBadge"></span>
+      <div class="q-label" id="prompt"></div>
+      <p class="hint" id="typeHint"></p>
+      <input type="text" id="answer" class="big" autocomplete="off" autocapitalize="sentences" enterkeyhint="send">
+      <textarea id="answerLong" class="hidden" rows="4" autocomplete="off"></textarea>
+      <div id="mcBox" class="mc-tap hidden" role="group"></div>
+      <div id="cloudBox" class="cloud-inputs hidden"></div>
+      <div id="status" class="notice hidden" role="status"></div>
+      <div class="nav">
+        <button type="button" class="btn primary big" id="submitBtn">Send answer</button>
+      </div>
+    </section>
+
+    <section id="endedPanel" class="panel hidden">
+      <p class="scroll speech">This room has closed.</p>
+      <div class="my-score" id="endScore"></div>
+    </section>
+  </main>
+  <footer class="foot">AMNE 151 · Sphinx · no accounts</footer>
+  <script src="normalize.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="firebase-app.js"></script>
+  <script src="play.js"></script>
+</body>
+</html>
