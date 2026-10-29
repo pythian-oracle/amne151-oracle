@@ -46,8 +46,15 @@ try {
   const room = (await host.textContent('#roomCodeDisplay')).trim();
   console.log('ROOM', room);
 
-  // Advance to cloud question (index 9)
-  for (let i = 0; i < 9; i++) {
+  // Advance to cloud (index 10): 5 next → gate → choose (a) → 4 next → cloud
+  for (let i = 0; i < 5; i++) {
+    await host.click('#nextBtn');
+    await sleep(350);
+  }
+  await host.waitForSelector('#hmGateBox:visible', { timeout: 8000 });
+  await host.click('#hmGateChooseMc');
+  await sleep(450);
+  for (let i = 0; i < 4; i++) {
     await host.click('#nextBtn');
     await sleep(350);
   }
@@ -80,7 +87,7 @@ try {
         at: Date.now()
       };
       try {
-        await set(ref(getDatabase(app), `rooms/${roomCode}/answers/9/${uid}`), payload);
+        await set(ref(getDatabase(app), `rooms/${roomCode}/answers/10/${uid}`), payload);
         results.push('OK');
       } catch (e) {
         results.push(e.code || e.message);
@@ -124,7 +131,8 @@ try {
   await sleep(800);
   const reviewCloud = await host.evaluate(() => {
     const items = [...document.querySelectorAll('#reviewList .review-item')];
-    const cloudItem = items.find((el) => /Achilles|word/i.test(el.textContent || ''));
+    const cloudItem = items.find((el) => /One word that describes Achilles/i.test(el.textContent || ''))
+      || items.find((el) => el.querySelector('.rq-cloud-list'));
     if (!cloudItem) return { ok: false, reason: 'no cloud review item' };
     const list = cloudItem.querySelector('.rq-cloud-list');
     const graphic = cloudItem.querySelector('.wc-stage, .wc-word, [data-review-cloud]');

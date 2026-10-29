@@ -1,6 +1,6 @@
 /**
  * Live smoke: host + 3 phones against amne151-sphinx.
- * Order: mc, mc multi×3, short×3, open×2, cloud.
+ * Order: mc, short×3, Atreus multi, Hard Mode gate, Troy/Cadmus multi, open×2, cloud.
  * Covers reveal stats, Review all (n/m correct), podium, wipe.
  */
 import { spawn } from 'child_process';
@@ -139,7 +139,11 @@ try {
   await answerMc(p1, [0, 1, 3, 5, 6]);
   await answerMc(p2, [0]);
   await answerMc(p3, [0, 1, 3, 5, 6]);
-  await hostNext(); // Q5 Troy
+  await hostNext(); // Hard Mode gate
+  await host.waitForSelector('#hmGateBox:visible', { timeout: 8000 });
+  await host.click('#hmGateChooseMc'); // (a) keep normal MC
+  await sleep(700);
+  // now on Troy
   await answerMc(p1, [0, 1, 3, 5, 6]);
   await answerMc(p2, [0, 1]);
   await answerMc(p3, [2, 4]); // wrong
@@ -150,7 +154,7 @@ try {
 
   // Skip to cloud: next through open, open, cloud
   for (let i = 0; i < 3; i++) await hostNext();
-  L('Q9: ' + (await host.textContent('#prompt')).slice(0, 60));
+  L('CLOUD: ' + (await host.textContent('#prompt')).slice(0, 60));
   await answerCloud(p1, ['wrath', 'pride']);
   await answerCloud(p2, ['anger']);
   await answerCloud(p3, ['rage']);

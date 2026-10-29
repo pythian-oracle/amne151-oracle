@@ -102,6 +102,23 @@
       }
     },
     {
+      "id": "hm-gate",
+      "section": "Mode",
+      "type": "hardModeGate",
+      "prompt": "Hard Mode?",
+      "choices": [
+        {
+          "id": "mc",
+          "label": "(a) Multiple choice"
+        },
+        {
+          "id": "type",
+          "label": "(b) Type the answer"
+        }
+      ],
+      "revealNote": null
+    },
+    {
       "id": "i7",
       "section": "Iliad",
       "type": "mc",

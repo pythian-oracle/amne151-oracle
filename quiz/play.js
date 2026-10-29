@@ -279,11 +279,16 @@
 
   function showAnswerUI(q, qIndex) {
     var k = kind(q);
+    var qs = quiz.questions || [];
+    var total = QuizNormalize.countableLength ? QuizNormalize.countableLength(qs) : qs.length;
+    var disp = QuizNormalize.displayQuestionNumber ? QuizNormalize.displayQuestionNumber(qs, qIndex) : (qIndex + 1);
     hide($('joinPanel'));
     hide($('waitPanel'));
     hide($('endedPanel'));
     show($('answerPanel'));
-    $('progress').textContent = 'Question ' + (qIndex + 1) + ' of ' + quiz.questions.length;
+    $('progress').textContent = (disp != null && total)
+      ? ('Question ' + disp + ' of ' + total)
+      : '';
     $('sectionBadge').textContent = q.section || 'Question';
     $('prompt').textContent = q.prompt;
 
@@ -352,6 +357,11 @@
     var q = questionAt(qIndex);
     if (!q) {
       showWaiting('Waiting…');
+      return;
+    }
+    if (QuizNormalize.isHardModeGate && QuizNormalize.isHardModeGate(q)) {
+      renderedQ = -1;
+      showWaiting('The oracle is deciding…');
       return;
     }
     if (prevHard !== hardMode) renderedQ = -1;

@@ -100,11 +100,39 @@
     return { ok: false, norm: norm, matched: null };
   }
 
-  /** Canonical question kind: short | open | mc | cloud (legacy 'type' → short). */
+  /** Canonical question kind: short | open | mc | cloud | hardModeGate (legacy 'type' → short). */
   function questionKind(q) {
     if (!q || !q.type) return 'short';
     if (q.type === 'type') return 'short';
     return q.type;
+  }
+
+  function isHardModeGate(q) {
+    return questionKind(q) === 'hardModeGate';
+  }
+
+  /** Count of real questions (excludes Hard Mode gate slides). */
+  function countableLength(qs) {
+    var n = 0, i;
+    for (i = 0; i < (qs || []).length; i++) {
+      if (!isHardModeGate(qs[i])) n++;
+    }
+    return n;
+  }
+
+  /**
+   * 1-based display number among countable questions.
+   * Returns null when index points at a Hard Mode gate.
+   */
+  function displayQuestionNumber(qs, index) {
+    var i, n;
+    if (!qs || index < 0 || index >= qs.length) return null;
+    if (isHardModeGate(qs[index])) return null;
+    n = 0;
+    for (i = 0; i <= index; i++) {
+      if (!isHardModeGate(qs[i])) n++;
+    }
+    return n;
   }
 
   function sortedUniqueNums(arr) {
@@ -525,6 +553,9 @@
     levenshtein: levenshtein,
     maxEditDistance: maxEditDistance,
     questionKind: questionKind,
+    isHardModeGate: isHardModeGate,
+    countableLength: countableLength,
+    displayQuestionNumber: displayQuestionNumber,
     gradeMc: gradeMc,
     choiceStrFromIndices: choiceStrFromIndices,
     indicesFromChoiceStr: indicesFromChoiceStr,

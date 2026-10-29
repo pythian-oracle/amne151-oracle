@@ -33,6 +33,9 @@ assert.ok(g3.exact);
 
 assert.strictEqual(N.questionKind({ type: 'type' }), 'short');
 assert.strictEqual(N.questionKind({ type: 'short' }), 'short');
+assert.strictEqual(N.questionKind({ type: 'hardModeGate' }), 'hardModeGate');
+assert.ok(N.isHardModeGate({ type: 'hardModeGate' }));
+assert.ok(!N.isGradable({ type: 'hardModeGate' }));
 assert.strictEqual(N.sanitizeNick('Alex!!!'), 'Alex');
 assert.strictEqual(N.uniquifyNick('Alex', { a: { nick: 'Alex' } }, 'b'), 'Alex 2');
 
@@ -44,9 +47,16 @@ const score = N.scoreForAnswer(
 assert.strictEqual(score, 1500);
 
 const quiz = JSON.parse(fs.readFileSync(new URL('../quizzes/lecture-review-1.json', import.meta.url), 'utf8'));
-assert.strictEqual(quiz.questions.length, 10);
+assert.strictEqual(quiz.questions.length, 11);
+assert.strictEqual(N.countableLength(quiz.questions), 10);
 const kinds = quiz.questions.map((q) => N.questionKind(q));
 assert.ok(kinds.includes('mc') && kinds.includes('cloud') && kinds.includes('open') && kinds.includes('short'));
+assert.ok(kinds.includes('hardModeGate'));
+const gateIdx = kinds.indexOf('hardModeGate');
+assert.strictEqual(gateIdx, 5, 'gate should sit after Q5 (Atreus)');
+assert.strictEqual(N.displayQuestionNumber(quiz.questions, 4), 5);
+assert.strictEqual(N.displayQuestionNumber(quiz.questions, 5), null);
+assert.strictEqual(N.displayQuestionNumber(quiz.questions, 6), 6);
 
 console.log('normalize + quiz JSON: OK');
 

@@ -296,16 +296,20 @@
   function renderHostReview() {
     var list = $('reviewList');
     var panel = $('reviewPanel');
-    var qs, i, q, k, html, accepted, opts, cor, j, words, g, st;
+    var qs, i, q, k, html, accepted, opts, cor, j, words, g, st, disp;
     if (!list || !quiz) return;
     qs = quiz.questions || [];
     html = '';
     for (i = 0; i < qs.length; i++) {
       q = qs[i];
       k = QuizNormalize.questionKind(q);
+      if (k === 'hardModeGate') continue;
       st = questionRoomStats(i, q);
+      disp = QuizNormalize.displayQuestionNumber
+        ? QuizNormalize.displayQuestionNumber(qs, i)
+        : (i + 1);
       html += '<article class="review-item">';
-      html += '<p class="rq-num">Question ' + (i + 1) + ' · ' + escapeHtml(q.section || k) +
+      html += '<p class="rq-num">Question ' + disp + ' · ' + escapeHtml(q.section || k) +
         ' · <span class="rq-stat">' + escapeHtml(st.label) + '</span></p>';
       html += '<p class="rq-prompt">' + escapeHtml(q.prompt || '') + '</p>';
       if (k === 'short' || k === 'type') {
@@ -377,6 +381,7 @@
     if (!q) return;
     k = QuizNormalize.questionKind(q);
     revealed = !!(currentMeta && currentMeta.revealed);
+    if (k === 'hardModeGate') return;
 
     if (k !== 'cloud') {
       hide(cloud);
@@ -488,8 +493,24 @@
   function renderMeta() {
     var qIndex = currentMeta ? Number(currentMeta.currentQ) || 0 : 0;
     var q = questionAt(qIndex);
-    var total = quiz ? quiz.questions.length : 0;
-    $('qPos').textContent = total ? (qIndex + 1) + '/' + total : '—';
+    var qs = quiz ? quiz.questions : [];
+    var total = QuizNormalize.countableLength ? QuizNormalize.countableLength(qs) : (qs ? qs.length : 0);
+    var disp = QuizNormalize.displayQuestionNumber ? QuizNormalize.displayQuestionNumber(qs, qIndex) : (qIndex + 1);
+    if (isGateQuestion(q)) {
+      $('qPos').textContent = '—';
+      $('phaseLabel').textContent = 'decision';
+      $('sectionBadge').textContent = (q && q.section) || 'Mode';
+      $('prompt').textContent = (q && q.prompt) || 'Hard Mode?';
+      $('respCount').textContent = '0';
+      hide($('bars')); hide($('cloud')); hide($('openCards'));
+      $('bars').innerHTML = '';
+      $('cloud').innerHTML = '';
+      $('openCards').innerHTML = '';
+      renderHardModeGate(q);
+      return;
+    }
+    clearHardModeGateUI();
+    $('qPos').textContent = total && disp != null ? (disp + '/' + total) : '—';
     $('phaseLabel').textContent = (currentMeta && currentMeta.phase) ? currentMeta.phase : '—';
     if (q) {
       $('sectionBadge').textContent = q.section || 'Question';
@@ -553,32 +574,69 @@
     $('roomCodeDisplay').textContent = code;
     $('joinUrl').textContent = joinUrlFor(code);
     renderQr(joinUrlFor(code));
-    if ($('hardModeLive') && $('hardModeSetup')) {
-      $('hardModeLive').checked = !!$('hardModeSetup').checked;
-    }
     // Keep host token in URL without forcing reload if already there
     if (location.search.indexOf('host=') === -1) {
       history.replaceState(null, '', hostUrlFor(code, token));
     }
   }
 
-  function syncHardModeUI() {
-    var on = !!(currentMeta && currentMeta.hardMode);
-    var live = $('hardModeLive');
-    if (live && live.checked !== on) live.checked = on;
+  function isGateQuestion(q) {
+    return !!(q && QuizNormalize.isHardModeGate && QuizNormalize.isHardModeGate(q));
   }
 
-  function setHardMode(on) {
-    on = !!on;
-    var live = $('hardModeLive');
-    var setup = $('hardModeSetup');
-    if (live) live.checked = on;
-    if (setup && !roomCode) setup.checked = on;
-    if (!roomCode || !currentMeta) return Promise.resolve();
-    return updateMeta({ hardMode: on }).catch(function (err) {
-      alert('Could not update Hard Mode: ' + (err.message || err));
-      syncHardModeUI();
+  /** Presenter picks Hard Mode at the gate slide; advances to the next question. */
+  function chooseHardModeGate(enableHard) {
+    if (!quiz || !currentMeta) return;
+    var qIndex = Number(currentMeta.currentQ) || 0;
+    var q = questionAt(qIndex);
+    if (!isGateQuestion(q)) return;
+    var nextQ = qIndex + 1;
+    var now = Date.now();
+    var openedByQ = Object.assign({}, currentMeta.openedByQ || {});
+    var patch = {
+      hardMode: !!enableHard,
+      revealed: false,
+      phase: 'question'
+    };
+    if (nextQ < quiz.questions.length) {
+      openedByQ[nextQ] = now;
+      patch.currentQ = nextQ;
+      patch.questionOpenedAt = now;
+      patch.openedByQ = openedByQ;
+    }
+    updateMeta(patch).catch(function (e) {
+      alert(e.message || e);
     });
+  }
+
+  function renderHardModeGate(q) {
+    var box = $('hmGateBox');
+    var barsWrap = $('barsWrap');
+    var html;
+    if (!box) return;
+    html = '';
+    html += '<p class="hint hm-gate-hint">Presenter only — students see a waiting message. This does not count as a question.</p>';
+    html += '<div class="hm-gate-actions">';
+    html += '<button type="button" class="btn primary big" id="hmGateChooseMc">(a) Multiple choice</button>';
+    html += '<button type="button" class="btn big" id="hmGateChooseType">(b) Type the answer</button>';
+    html += '</div>';
+    box.innerHTML = html;
+    show(box);
+    if (barsWrap) hide(barsWrap);
+    hide($('revealBox'));
+    if ($('nextBtn')) hide($('nextBtn'));
+    if ($('revealBtn')) hide($('revealBtn'));
+    $('hmGateChooseMc').onclick = function () { chooseHardModeGate(false); };
+    $('hmGateChooseType').onclick = function () { chooseHardModeGate(true); };
+  }
+
+  function clearHardModeGateUI() {
+    var box = $('hmGateBox');
+    var barsWrap = $('barsWrap');
+    if (box) { hide(box); box.innerHTML = ''; }
+    if (barsWrap) show(barsWrap);
+    if ($('nextBtn')) show($('nextBtn'));
+    if ($('revealBtn')) show($('revealBtn'));
   }
 
   function createRoom() {
@@ -605,7 +663,7 @@
           createdAt: opened0,
           questionOpenedAt: opened0,
           openedByQ: { 0: opened0 },
-          hardMode: !!( $('hardModeSetup') && $('hardModeSetup').checked )
+          hardMode: false
         };
         return fb.set(fb.ref('rooms/' + code + '/meta'), meta).then(function () {
           saveSession(code, token, quizId);
@@ -637,6 +695,7 @@
 
   function onNext() {
     if (!quiz || !currentMeta) return;
+    if (isGateQuestion(questionAt(Number(currentMeta.currentQ) || 0))) return;
     var nextQ = Number(currentMeta.currentQ) + 1;
     if (nextQ >= quiz.questions.length) {
       boardVisible = true;
@@ -660,6 +719,7 @@
   }
 
   function onReveal() {
+    if (isGateQuestion(questionAt(currentMeta ? Number(currentMeta.currentQ) || 0 : 0))) return;
     updateMeta({ revealed: true, phase: 'reveal' }).then(function () {
       var qIndex = currentMeta ? Number(currentMeta.currentQ) : 0;
       var last = quiz && (qIndex >= quiz.questions.length - 1);

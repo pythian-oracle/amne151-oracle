@@ -8,9 +8,8 @@
   var score = 0;
   var scored = 0;
   var answered = false;
-  var hardMode = false;
-  var HARD_KEY = 'sphinx-hard-mode';
-  /** @type {Array<{kind:string, prompt:string, section:string, yourText:string, mark:string, correctHtml:string, note:string}>} */
+  var hardMode = false; // set only by the Hard Mode gate this run
+  /** @type {Array<{kind:string, prompt:string, section:string, yourText:string, mark:string, correctHtml:string, note:string|null, skip?:boolean}>} */
   var history = [];
 
   var $ = function (id) { return document.getElementById(id); };
@@ -38,7 +37,10 @@
       })
       .then(function (data) {
         quiz = data;
-        $('quizMeta').textContent = (data.title || data.id) + ' · ' + data.questions.length + ' questions';
+        var nQ = QuizNormalize.countableLength
+          ? QuizNormalize.countableLength(data.questions)
+          : data.questions.length;
+        $('quizMeta').textContent = (data.title || data.id) + ' · ' + nQ + ' questions';
         document.title = (data.title || 'Sphinx') + ' · self-quiz · AMNE 151';
       })
       .catch(function (err) {
@@ -52,6 +54,8 @@
     hide(answer); hide(answerLong); hide(mcBox); hide(cloudBox);
     var hardBox = $('hardMcBox');
     if (hardBox) { hide(hardBox); hardBox.innerHTML = ''; }
+    var gate = $('hmGateBox');
+    if (gate) { hide(gate); gate.innerHTML = ''; }
     mcBox.innerHTML = '';
     cloudBox.innerHTML = '';
   }
@@ -145,6 +149,40 @@
     return flat;
   }
 
+  function renderHardModeGate(q) {
+    var box = $('hmGateBox');
+    var html;
+    if (!box) return;
+    html = '';
+    html += '<p class="hint hm-gate-hint">Choose how later multiple-choice questions work. This does not count toward your score.</p>';
+    html += '<div class="hm-gate-actions">';
+    html += '<button type="button" class="btn primary big" id="hmGateChooseMc">(a) Multiple choice</button>';
+    html += '<button type="button" class="btn big" id="hmGateChooseType">(b) Type the answer</button>';
+    html += '</div>';
+    box.innerHTML = html;
+    show(box);
+    $('hmGateChooseMc').onclick = function () { chooseHardModeGate(false); };
+    $('hmGateChooseType').onclick = function () { chooseHardModeGate(true); };
+  }
+
+  function chooseHardModeGate(enableHard) {
+    hardMode = !!enableHard;
+    answered = true;
+    // Do not score or store in review
+    history[idx] = null;
+    idx += 1;
+    if (idx >= quiz.questions.length) {
+      hide(quizEl);
+      show(doneEl);
+      $('scoreLine').innerHTML = scored
+        ? 'You got <strong>' + score + '</strong> of <strong>' + scored + '</strong> scored questions right.'
+        : 'Review complete.';
+      renderSelfReview();
+      return;
+    }
+    renderQuestion();
+  }
+
   function renderCloudInputs(q) {
     var n = Math.min(5, Math.max(1, Number(q.max) || 3));
     var i, inp;
@@ -174,18 +212,34 @@
   function renderQuestion() {
     var q = current();
     var k = kind(q);
+    var qs = quiz.questions || [];
+    var total = QuizNormalize.countableLength ? QuizNormalize.countableLength(qs) : qs.length;
+    var disp = QuizNormalize.displayQuestionNumber ? QuizNormalize.displayQuestionNumber(qs, idx) : (idx + 1);
     answered = false;
     hide(feedback);
     feedback.className = 'feedback hidden';
     feedback.innerHTML = '';
-    show(checkBtn);
     hide(nextBtn);
+    hideInputs();
+
+    if (k === 'hardModeGate') {
+      hide(checkBtn);
+      $('progress').textContent = 'Mode decision';
+      $('sectionBadge').textContent = q.section || 'Mode';
+      $('prompt').textContent = q.prompt || 'Hard Mode?';
+      $('typeHint').textContent = '';
+      renderHardModeGate(q);
+      return;
+    }
+
+    show(checkBtn);
     checkBtn.disabled = false;
     checkBtn.textContent = k === 'cloud' || k === 'open' ? 'Continue' : 'Check answer';
-    $('progress').textContent = 'Question ' + (idx + 1) + ' of ' + quiz.questions.length;
+    $('progress').textContent = (disp != null && total)
+      ? ('Question ' + disp + ' of ' + total)
+      : '';
     $('sectionBadge').textContent = q.section || 'Question';
     $('prompt').textContent = q.prompt;
-    hideInputs();
 
     if (k === 'open') {
       show(answerLong);
@@ -397,14 +451,16 @@
 
   function renderSelfReview() {
     var list = $('selfReviewList');
-    var i, h, html;
+    var i, h, html, num;
     if (!list) return;
     html = '';
+    num = 0;
     for (i = 0; i < history.length; i++) {
       h = history[i];
-      if (!h) continue;
+      if (!h || h.kind === 'hardModeGate') continue;
+      num += 1;
       html += '<article class="review-item">';
-      html += '<p class="rq-num">Question ' + (i + 1) +
+      html += '<p class="rq-num">Question ' + num +
         (h.section ? ' · ' + escapeHtml(h.section) : '') +
         ' · ' + markLabel(h.mark) + '</p>';
       html += '<p class="rq-prompt">' + escapeHtml(h.prompt) + '</p>';
@@ -422,9 +478,12 @@
     if (idx >= quiz.questions.length) {
       hide(quizEl);
       show(doneEl);
+      var nQ = QuizNormalize.countableLength
+        ? QuizNormalize.countableLength(quiz.questions)
+        : quiz.questions.length;
       $('scoreLine').innerHTML = scored
         ? 'You got <strong>' + score + '</strong> of <strong>' + scored + '</strong> scored questions right.'
-        : 'Review complete (' + quiz.questions.length + ' questions).';
+        : 'Review complete (' + nQ + ' questions).';
       renderSelfReview();
       return;
     }
@@ -432,24 +491,12 @@
   }
 
   function start() {
-    var toggle = $('hardModeSelf');
-    hardMode = !!(toggle && toggle.checked);
-    try { localStorage.setItem(HARD_KEY, hardMode ? '1' : '0'); } catch (e) {}
+    hardMode = false;
+    try { localStorage.removeItem('sphinx-hard-mode'); } catch (e) {}
     idx = 0; score = 0; scored = 0; history = [];
     hide(intro); hide(doneEl); show(quizEl);
     if ($('selfReviewList')) $('selfReviewList').innerHTML = '';
     renderQuestion();
-  }
-
-  function restoreHardToggle() {
-    var toggle = $('hardModeSelf');
-    if (!toggle) return;
-    try {
-      if (localStorage.getItem(HARD_KEY) === '1') toggle.checked = true;
-    } catch (e) {}
-    toggle.addEventListener('change', function () {
-      try { localStorage.setItem(HARD_KEY, toggle.checked ? '1' : '0'); } catch (e2) {}
-    });
   }
 
   $('startBtn').addEventListener('click', start);
@@ -463,6 +510,5 @@
     }
   });
 
-  restoreHardToggle();
   loadQuiz();
 })();
