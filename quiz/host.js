@@ -27,7 +27,7 @@
   }
 
   function randomCode(len) {
-    var alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    var alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // letters only (no I/O; digits still accepted on join)
     var out = '', i, buf;
     if (window.crypto && crypto.getRandomValues) {
       buf = new Uint8Array(len);
@@ -228,10 +228,30 @@
   }
 
 
+    /** Plain-text cloud summary for Review all: "wrath ×5, pride ×3, rage, …" (omit ×1). */
+  function formatCloudWordList(words) {
+    var parts = [], i, w, c, lab;
+    for (i = 0; i < (words || []).length; i++) {
+      w = words[i];
+      if (!w || !w.label) continue;
+      c = Number(w.count) || 1;
+      lab = escapeHtml(w.label);
+      parts.push(c > 1 ? (lab + ' ×' + c) : lab);
+    }
+    return parts.join(', ');
+  }
+
   function topCloudWordsForQuestion(qIndex, limit) {
-    var map = (answersTree && answersTree[qIndex]) || {};
+    var map = {};
+    if (answersTree) {
+      map = answersTree[qIndex] || answersTree[String(qIndex)] || {};
+    }
+    if ((!map || !Object.keys(map).length) && currentAnswers &&
+        currentMeta && Number(currentMeta.currentQ) === Number(qIndex)) {
+      map = currentAnswers;
+    }
     var groups = QuizNormalize.groupCloudWords(map) || [];
-    return groups.slice(0, limit || 8);
+    return groups.slice(0, limit || 80);
   }
 
   /** Per-question room stats: {answered, correct, partial, label}. No answers → label "—". */
@@ -313,7 +333,12 @@
           html += '<p class="rq-correct"><strong>Notes</strong></p>';
           html += '<p>' + escapeHtml(q.modelAnswer) + '</p>';
         }
-        html += '<div class="wc-embed"><div class="cloud" data-review-cloud="' + i + '" aria-label="Word cloud"></div></div>';
+        words = topCloudWordsForQuestion(i, 80);
+        if (words.length) {
+          html += '<p class="rq-cloud-list" aria-label="Submitted words">' + formatCloudWordList(words) + '</p>';
+        } else {
+          html += '<p class="hint">No words submitted.</p>';
+        }
       }
       if (q.revealNote) {
         html += '<p class="rq-note">' + escapeHtml(q.revealNote) + '</p>';
@@ -321,19 +346,6 @@
       html += '</article>';
     }
     list.innerHTML = html;
-    // Paint packed clouds into review embeds
-    Array.prototype.forEach.call(list.querySelectorAll('[data-review-cloud]'), function (el) {
-      var qi = Number(el.getAttribute('data-review-cloud'));
-      var gs = topCloudWordsForQuestion(qi, 60);
-      var ansMap = (answersTree && answersTree[qi]) || {};
-      if (typeof SphinxWordCloud !== 'undefined' && SphinxWordCloud.render) {
-        SphinxWordCloud.render(el, gs, {
-          totalResponses: countAnswers(ansMap),
-          height: 260,
-          animate: false
-        });
-      }
-    });
     show(panel);
     try { panel.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
   }

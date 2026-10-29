@@ -1,4 +1,4 @@
-/* Sphinx packed word cloud — Archimedean spiral, no build step. */
+/* Sphinx packed word cloud — Archimedean spiral, horizontal words, no build step. */
 (function (global) {
   'use strict';
 
@@ -24,7 +24,7 @@
   function placeSpiral(items, width, height) {
     var placed = [];
     var cx = width / 2, cy = height / 2;
-    var i, it, angle, r, step, tries, ok, j, x, y, rot;
+    var i, it, angle, r, step, tries, ok, j, x, y;
     for (i = 0; i < items.length; i++) {
       it = items[i];
       angle = (hash(it.norm) % 360) * Math.PI / 180;
@@ -34,16 +34,12 @@
       for (tries = 0; tries < 900; tries++) {
         x = cx + Math.cos(angle) * r;
         y = cy + Math.sin(angle) * r * 0.72;
-        rot = it.rot;
-        // approximate AABB with rotation (conservative)
-        var rw = it.w * Math.abs(Math.cos(rot * Math.PI / 180)) + it.h * Math.abs(Math.sin(rot * Math.PI / 180));
-        var rh = it.w * Math.abs(Math.sin(rot * Math.PI / 180)) + it.h * Math.abs(Math.cos(rot * Math.PI / 180));
-        var box = { x: x, y: y, w: rw, h: rh };
+        var box = { x: x, y: y, w: it.w, h: it.h };
         ok = true;
-        if (x - rw / 2 < 4 || x + rw / 2 > width - 4 || y - rh / 2 < 4 || y + rh / 2 > height - 4) ok = false;
+        if (x - it.w / 2 < 4 || x + it.w / 2 > width - 4 || y - it.h / 2 < 4 || y + it.h / 2 > height - 4) ok = false;
         if (ok) {
           for (j = 0; j < placed.length; j++) {
-            if (overlaps(box, placed[j], 3)) { ok = false; break; }
+            if (overlaps(box, placed[j], 4)) { ok = false; break; }
           }
         }
         if (ok) {
@@ -61,10 +57,17 @@
     }
   }
 
+  /** Font size: count 1 = base; grows with sqrt(count) up to ~3× base. */
+  function fontSizeForCount(count, baseFs) {
+    var c = Math.max(1, Number(count) || 1);
+    var scale = Math.min(3, Math.sqrt(c));
+    return Math.round(baseFs * scale);
+  }
+
   /**
    * Render or update a word cloud in container.
    * words: [{label, norm, count}] sorted desc by count preferred.
-   * opts: { animate: true }
+   * opts: { animate: true, height, totalResponses }
    */
   function render(container, words, opts) {
     opts = opts || {};
@@ -96,29 +99,22 @@
       return;
     }
 
-    var maxC = list[0].count || 1;
-    var minC = list[list.length - 1].count || 1;
-    var minFs = 14, maxFs = Math.min(64, Math.max(36, Math.floor(width / 12)));
+    var baseFs = Math.max(15, Math.min(20, Math.floor(width / 36)));
     var items = [];
-    var i, w, fs, el, h, rotChoices, rot, existing, isNew;
+    var i, w, fs, el, existing, isNew;
 
-    // Build / reuse DOM nodes keyed by norm
     var prev = Object.create(null);
     Array.prototype.forEach.call(stage.querySelectorAll('.wc-word'), function (node) {
       prev[node.getAttribute('data-norm')] = node;
     });
 
-    // Clear empty placeholder
     var empty = stage.querySelector('.wc-empty');
     if (empty) empty.remove();
 
     var keep = Object.create(null);
     for (i = 0; i < list.length; i++) {
       w = list[i];
-      var t = maxC === minC ? 1 : (w.count - minC) / (maxC - minC);
-      fs = Math.round(minFs + t * (maxFs - minFs));
-      rotChoices = [0, 0, 0, 0, 0, -15, 15, -20, 20, -45, 45, -90, 90];
-      rot = rotChoices[hash(w.norm || w.label) % rotChoices.length];
+      fs = fontSizeForCount(w.count, baseFs);
       existing = prev[w.norm];
       isNew = !existing;
       if (!existing) {
@@ -138,16 +134,14 @@
       el.style.fontWeight = (i === 0 ? '700' : '600');
       el.classList.toggle('wc-top', i === 0);
       el.setAttribute('title', w.label + ' ×' + w.count);
-      // temp place for measure
       el.style.visibility = 'hidden';
       el.style.left = '0';
       el.style.top = '0';
-      el.style.transform = 'rotate(' + rot + 'deg)';
+      el.style.transform = 'none';
       var m = measure(el);
-      items.push({ el: el, label: w.label, norm: w.norm, count: w.count, w: m.w, h: m.h, rot: rot, isNew: isNew });
+      items.push({ el: el, label: w.label, norm: w.norm, count: w.count, w: m.w, h: m.h, isNew: isNew });
     }
 
-    // Remove stale
     Object.keys(prev).forEach(function (n) {
       if (!keep[n]) prev[n].remove();
     });
@@ -159,7 +153,7 @@
       el.style.visibility = 'visible';
       el.style.left = (items[i].x - items[i].w / 2) + 'px';
       el.style.top = (items[i].y - items[i].h / 2) + 'px';
-      el.style.transform = 'rotate(' + items[i].rot + 'deg)';
+      el.style.transform = 'none';
     }
 
     var top = list[0];
@@ -168,5 +162,5 @@
       (totalResp ? '<span class="wc-total">' + totalResp + ' response' + (totalResp === 1 ? '' : 's') + '</span>' : '');
   }
 
-  global.SphinxWordCloud = { render: render };
+  global.SphinxWordCloud = { render: render, fontSizeForCount: fontSizeForCount };
 })(typeof window !== 'undefined' ? window : globalThis);

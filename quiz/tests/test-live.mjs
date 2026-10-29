@@ -176,6 +176,11 @@ try {
   // Stats like 2/3 correct should appear for Q0
   if (!/\d+\/\d+ correct/i.test(review || '')) fail('review missing n/m correct');
   if (!/\d+ responses?/i.test(review || '')) fail('review missing cloud/open response counts');
+  if (!/wrath|anger|rage|pride/i.test(review || '')) fail('review missing cloud words as text');
+  if (/data-review-cloud|wc-stage/i.test(await host.content())) {
+    const hasGraphic = await host.evaluate(() => !!document.querySelector('#reviewList .wc-stage, #reviewList [data-review-cloud]'));
+    if (hasGraphic) fail('review must not show graphic word cloud');
+  }
 
   await host.screenshot({ path: path.join(shotsDir, 'host-review.png'), fullPage: true });
   L('SHOT: host-review.png');

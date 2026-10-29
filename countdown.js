@@ -31,7 +31,11 @@
   var today;
   try { today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Vancouver', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
   catch (e) { var d = new Date(); today = d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
-  var pick = W[W.length - 1];
-  for (var i = 0; i < W.length; i++) { if (W[i][1] >= today) { pick = W[i]; break; } }
+  // Most recent lecture on or before today (Vancouver). Before term → lecture-1.
+  var pick = W[0];
+  for (var i = 0; i < W.length; i++) {
+    if (W[i][1] <= today) pick = W[i];
+    else break;
+  }
   a.href = 'syllabus.html#' + pick[0];
 })();

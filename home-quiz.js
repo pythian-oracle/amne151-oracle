@@ -7,10 +7,10 @@
   if (!form || !input) return;
 
   function normalize(v) {
-    return String(v || '').replace(/\s+/g, '').toUpperCase();
+    return String(v || '').replace(/\s+/g, '').toUpperCase().replace(/[^A-Z0-9]/g, '');
   }
   function validate(code) {
-    return /^[A-Z]{4}$/.test(code);
+    return /^[A-Z0-9]{4}$/.test(code);
   }
   function showError(msg) {
     if (!err) return;
@@ -34,7 +34,7 @@
     var code = normalize(input.value);
     input.value = code;
     if (!validate(code)) {
-      showError('Enter the 4-letter room code from the projector (A–Z only).');
+      showError('Enter the 4-character room code');
       input.focus();
       return;
     }

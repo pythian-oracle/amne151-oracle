@@ -313,8 +313,8 @@
   function join() {
     var code = String($('roomInput').value || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
     var nickRaw = $('nickInput').value;
-    if (code.length < 3) {
-      alert('Enter the room code from the projector.');
+    if (!/^[A-Z0-9]{4}$/.test(code)) {
+      alert('Enter the 4-character room code');
       return;
     }
     roomCode = code;
@@ -334,6 +334,7 @@
         });
       })
       .then(function () {
+        try { localStorage.setItem('sphinx-quiz-nick', myNick); } catch (e) {}
         history.replaceState(null, '', 'play.html?room=' + encodeURIComponent(code));
         showWaiting('Connected. Loading…');
         listen(code);
@@ -419,6 +420,13 @@
   $('answer').addEventListener('keydown', function (e) {
     if (e.key === 'Enter') { e.preventDefault(); submit(); }
   });
+
+  try {
+    var savedNick = localStorage.getItem('sphinx-quiz-nick');
+    if (savedNick && $('nickInput') && !$('nickInput').value) {
+      $('nickInput').value = savedNick;
+    }
+  } catch (e) {}
 
   var params = new URLSearchParams(location.search);
   var pre = params.get('room');

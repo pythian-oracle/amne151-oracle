@@ -93,22 +93,57 @@ try {
   await sleep(2500);
   const info = await host.evaluate(() => {
     const stage = document.querySelector('#cloud .wc-stage');
-    const words = document.querySelectorAll('#cloud .wc-word');
+    const words = [...document.querySelectorAll('#cloud .wc-word')];
+    const sizes = words.map((w) => parseFloat(getComputedStyle(w).fontSize));
+    const rots = words.map((w) => w.style.transform || '');
+    const wrath = words.find((w) => /wrath/i.test(w.textContent));
+    const rare = words.find((w) => /sulking|brave|timē|grief/i.test(w.textContent));
     return {
       hasStage: !!stage,
       wordCount: words.length,
       meta: (document.querySelector('#cloud .wc-meta') || {}).textContent || '',
-      topHasClass: !!document.querySelector('#cloud .wc-word.wc-top')
+      topHasClass: !!document.querySelector('#cloud .wc-word.wc-top'),
+      allHorizontal: rots.every((t) => !t || t === 'none' || t === 'rotate(0deg)'),
+      maxFs: Math.max(...sizes, 0),
+      minFs: Math.min(...sizes.filter(Boolean), 999),
+      wrathFs: wrath ? parseFloat(getComputedStyle(wrath).fontSize) : 0,
+      rareFs: rare ? parseFloat(getComputedStyle(rare).fontSize) : 0
     };
   });
   console.log('CLOUD', JSON.stringify(info));
   if (!info.hasStage || info.wordCount < 8) throw new Error('word cloud not rendered well: ' + JSON.stringify(info));
+  if (!info.allHorizontal) throw new Error('words must be horizontal (no rotation)');
+  if (!(info.wrathFs > info.rareFs * 1.3)) throw new Error('frequency sizing not noticeable: ' + JSON.stringify(info));
+  if (!(info.maxFs >= info.minFs * 1.5)) throw new Error('size range too flat: ' + JSON.stringify(info));
 
   await host.screenshot({ path: path.join(shotsDir, 'host-wordcloud.png'), fullPage: true });
   console.log('SHOT host-wordcloud.png');
 
-  await host.click('#endBtn');
-  await sleep(1500);
+  // Review all (while still in live view): cloud should be plain text list, not graphic
+  await host.click('#reviewBtn');
+  await sleep(800);
+  const reviewCloud = await host.evaluate(() => {
+    const items = [...document.querySelectorAll('#reviewList .review-item')];
+    const cloudItem = items.find((el) => /Achilles|word/i.test(el.textContent || ''));
+    if (!cloudItem) return { ok: false, reason: 'no cloud review item' };
+    const list = cloudItem.querySelector('.rq-cloud-list');
+    const graphic = cloudItem.querySelector('.wc-stage, .wc-word, [data-review-cloud]');
+    return {
+      ok: !!list && !graphic,
+      text: (list && list.textContent) || '',
+      hasGraphic: !!graphic
+    };
+  });
+  console.log('REVIEW_CLOUD', JSON.stringify(reviewCloud));
+  if (!reviewCloud.ok) throw new Error('review cloud should be text list: ' + JSON.stringify(reviewCloud));
+  if (!/wrath\s*×\s*\d+/i.test(reviewCloud.text)) throw new Error('expected wrath ×N in list: ' + reviewCloud.text);
+  await host.screenshot({ path: path.join(shotsDir, 'host-review.png'), fullPage: true });
+  console.log('SHOT host-review.png');
+
+  await host.click('#closeReviewBtn');
+  await sleep(400);
+  await host.click('#endBtn', { force: true });
+  await sleep(1000);
   console.log('WORDCLOUD_TEST_PASS');
 } catch (e) {
   code = 1;

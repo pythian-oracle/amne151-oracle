@@ -180,11 +180,11 @@
     <div class="entry-cards">
       <article class="entry-card" aria-labelledby="liveQuizHeading">
         <h2 id="liveQuizHeading" class="entry-title">Live quiz</h2>
-        <p class="entry-hint">Enter the 4-letter room code from the projector</p>
+        <p class="entry-hint">Enter the 4-character room code from the projector</p>
         <form id="liveJoinForm" class="live-join" action="quiz/play.html" method="get" novalidate>
           <label class="sr-only" for="roomCode">Room code</label>
           <div class="live-join-row">
-            <input type="text" id="roomCode" name="room" maxlength="4" minlength="4" autocomplete="off" spellcheck="false" autocapitalize="characters" placeholder="ABCD" inputmode="text" aria-describedby="roomCodeError">
+            <input type="text" id="roomCode" name="room" maxlength="4" minlength="4" autocomplete="off" spellcheck="false" autocapitalize="characters" placeholder="A2B3" inputmode="text" aria-describedby="roomCodeError">
             <button type="submit" class="btn primary" id="joinRoomBtn">Join</button>
           </div>
           <p class="error" id="roomCodeError" hidden></p>
