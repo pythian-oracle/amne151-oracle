@@ -268,3 +268,6 @@ a:focus-visible{outline:3px solid var(--terra);outline-offset:2px}
   .entry-cards{flex-direction:row;align-items:stretch}
   .entry-card{flex:1 1 0}
 }
+
+.entry-card .host-link{margin:.6rem 0 0;font-size:.8rem;text-align:right}
+.entry-card .host-link a{color:var(--muted)}
