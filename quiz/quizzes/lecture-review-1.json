@@ -260,7 +260,7 @@
       "id": "i0c",
       "section": "Iliad",
       "type": "cloud",
-      "prompt": "One word that describes Achilles in Iliad 1",
+      "prompt": "In your view...",
       "max": 3,
       "modelAnswer": "Possible themes: wrath, honour, pride, anger, glory…",
       "revealNote": null

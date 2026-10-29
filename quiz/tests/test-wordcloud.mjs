@@ -131,7 +131,7 @@ try {
   await sleep(800);
   const reviewCloud = await host.evaluate(() => {
     const items = [...document.querySelectorAll('#reviewList .review-item')];
-    const cloudItem = items.find((el) => /One word that describes Achilles/i.test(el.textContent || ''))
+    const cloudItem = items.find((el) => /In your view/i.test(el.textContent || ''))
       || items.find((el) => el.querySelector('.rq-cloud-list'));
     if (!cloudItem) return { ok: false, reason: 'no cloud review item' };
     const list = cloudItem.querySelector('.rq-cloud-list');
