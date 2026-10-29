@@ -128,11 +128,11 @@ try {
   if (!/\d+\/\d+ correct/i.test(reveal0 || '')) fail('reveal missing n/m correct stats');
 
   await hostNext(); // Q1 Atreus
-  await answerMc(p1, [0, 1, 3]);
+  await answerMc(p1, [0, 1, 3, 5, 6]);
   await answerMc(p2, [0]);
-  await answerMc(p3, [0, 1, 3]);
+  await answerMc(p3, [0, 1, 3, 5, 6]);
   await hostNext(); // Q2 Troy
-  await answerMc(p1, [0, 1, 3, 5]);
+  await answerMc(p1, [0, 1, 3, 5, 6]);
   await answerMc(p2, [0, 1]);
   await answerMc(p3, [2, 4]); // wrong
   await hostNext(); // Q3 Cadmus

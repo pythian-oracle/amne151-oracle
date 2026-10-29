@@ -48,9 +48,9 @@ try {
   // Q0 mc single Aphrodite
   await answerMc([2]);
   // Q1 Atreus multi
-  await answerMc([0, 1, 3]);
+  await answerMc([0, 1, 3, 5, 6]);
   // Q2 Troy multi
-  await answerMc([0, 1, 3, 5]);
+  await answerMc([0, 1, 3, 5, 6]);
   // Q3 Cadmus multi
   await answerMc([0, 1, 3, 5]);
 
