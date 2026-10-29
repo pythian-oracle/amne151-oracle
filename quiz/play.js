@@ -15,6 +15,7 @@
   var playersMap = {};
   var answersTree = {};
   var lastSubmittedQ = null;
+  var renderedRound = 0;
   var renderedQ = null;
 
   function show(el) { el.classList.remove('hidden'); }
@@ -421,7 +422,7 @@
           html += '<p class="rq-correct"><strong>Notes</strong></p>';
           html += '<p>' + escapeHtml(q.modelAnswer) + '</p>';
         }
-        map = answersForQuestion(i);
+        map = QuizNormalize.filterCloudRound(answersForQuestion(i), QuizNormalize.cloudRoundFor(currentMeta, i));
         groups = QuizNormalize.groupCloudWords(map) || [];
         if (groups.length) {
           html += '<p class="rq-cloud-list" aria-label="Submitted words">' +
@@ -495,6 +496,16 @@
       return;
     }
     if (prevHard !== hardMode) renderedQ = -1;
+    if (QuizNormalize.questionKind(q) === 'cloud') {
+      var round = QuizNormalize.cloudRoundFor(meta, qIndex);
+      if (round !== renderedRound) {
+        renderedRound = round;
+        renderedQ = -1;
+        if (lastSubmittedQ === qIndex) lastSubmittedQ = null;
+      }
+    } else {
+      renderedRound = 0;
+    }
     showAnswerUI(q, qIndex);
   }
 
@@ -620,7 +631,8 @@
       if (!Object.keys(wordsObj).length) return { error: 'Words were empty after cleaning.' };
       raw = words.join(', ');
       norm = words.map(function (w) { return QuizNormalize.normalizeAnswer(w); }).filter(Boolean).join(' ');
-      return { kind: 'cloud', words: wordsObj, raw: raw.slice(0, 280), norm: String(norm).slice(0, 280), at: Date.now() };
+      return { kind: 'cloud', words: wordsObj, raw: raw.slice(0, 280), norm: String(norm).slice(0, 280), at: Date.now(),
+        round: QuizNormalize.cloudRoundFor(currentMeta, Number(currentMeta && currentMeta.currentQ) || 0) };
     }
     raw = (k === 'open' ? $('answerLong').value : $('answer').value);
     raw = String(raw || '').trim();

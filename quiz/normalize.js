@@ -242,6 +242,25 @@
   }
 
   /** Flatten cloud words from all devices and group by norm. */
+  /** Word cloud restarts: meta.cloudRounds = {qIndex: n}. Missing → 0. */
+  function cloudRoundFor(meta, qIndex) {
+    var r = meta && meta.cloudRounds ? meta.cloudRounds[qIndex] : 0;
+    if (r == null && meta && meta.cloudRounds) r = meta.cloudRounds[String(qIndex)];
+    return Number(r) || 0;
+  }
+
+  /** Keep only answers submitted in the given cloud round. */
+  function filterCloudRound(answerMap, round) {
+    var out = {}, k, a;
+    round = Number(round) || 0;
+    for (k in (answerMap || {})) {
+      if (!Object.prototype.hasOwnProperty.call(answerMap, k)) continue;
+      a = answerMap[k];
+      if (a && (Number(a.round) || 0) === round) out[k] = a;
+    }
+    return out;
+  }
+
   function groupCloudWords(answerMap) {
     var bag = [];
     var k, v, w, i, words;
@@ -634,6 +653,8 @@
     indicesFromChoiceStr: indicesFromChoiceStr,
     tallyMc: tallyMc,
     groupCloudWords: groupCloudWords,
+    cloudRoundFor: cloudRoundFor,
+    filterCloudRound: filterCloudRound,
     sortedUniqueNums: sortedUniqueNums,
     isGradable: isGradable,
     answerCorrectness: answerCorrectness,

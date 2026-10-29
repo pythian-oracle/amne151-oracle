@@ -250,6 +250,7 @@
         currentMeta && Number(currentMeta.currentQ) === Number(qIndex)) {
       map = currentAnswers;
     }
+    map = QuizNormalize.filterCloudRound(map, QuizNormalize.cloudRoundFor(currentMeta, qIndex));
     var groups = QuizNormalize.groupCloudWords(map) || [];
     return groups.slice(0, limit || 80);
   }
@@ -259,6 +260,7 @@
     var map = (answersTree && answersTree[qIndex]) || {};
     var k = QuizNormalize.questionKind(q || {});
     var answered = 0, correct = 0, partial = 0, uid, ans, g, sel, pct, label;
+    if (k === 'cloud') map = QuizNormalize.filterCloudRound(map, QuizNormalize.cloudRoundFor(currentMeta, qIndex));
     for (uid in map) {
       if (!Object.prototype.hasOwnProperty.call(map, uid) || !map[uid]) continue;
       ans = map[uid];
@@ -381,7 +383,14 @@
     var cloud = $('cloud');
     var openCards = $('openCards');
     var k, groups, max, i, g, pct, row, counts, opts, revealed, html;
-    $('respCount').textContent = String(countAnswers(currentAnswers));
+    var shown = currentAnswers || {};
+    if (q && QuizNormalize.questionKind(q) === 'cloud') {
+      shown = QuizNormalize.filterCloudRound(shown, QuizNormalize.cloudRoundFor(currentMeta, qIndex));
+    }
+    if ($('newCloudBtn')) {
+      if (q && QuizNormalize.questionKind(q) === 'cloud') show($('newCloudBtn')); else hide($('newCloudBtn'));
+    }
+    $('respCount').textContent = String(countAnswers(shown));
     hide(bars); hide(openCards);
     bars.innerHTML = '';
     openCards.innerHTML = '';
@@ -419,10 +428,10 @@
       }
     } else if (k === 'cloud') {
       show(cloud);
-      groups = QuizNormalize.groupCloudWords(currentAnswers || {});
+      groups = QuizNormalize.groupCloudWords(shown);
       if (typeof SphinxWordCloud !== 'undefined' && SphinxWordCloud.render) {
         SphinxWordCloud.render(cloud, groups, {
-          totalResponses: countAnswers(currentAnswers),
+          totalResponses: countAnswers(shown),
           height: 340,
           animate: true
         });
@@ -473,7 +482,7 @@
 
     var rb = $('revealBox');
     var stLine, stCur;
-    if (revealed && q) {
+    if (revealed && q && k !== 'cloud') {
       show(rb);
       stCur = questionRoomStats(qIndex, q);
       stLine = '<br><span class="rq-stat">' + escapeHtml(stCur.label) + '</span>';
@@ -759,6 +768,19 @@
     });
   }
 
+  /** Clear the cloud on screen and let every phone send fresh words. */
+  function onNewCloud() {
+    if (!quiz || !currentMeta) return;
+    var qIndex = Number(currentMeta.currentQ) || 0;
+    var q = questionAt(qIndex);
+    if (!q || QuizNormalize.questionKind(q) !== 'cloud') return;
+    var rounds = Object.assign({}, currentMeta.cloudRounds || {});
+    rounds[qIndex] = QuizNormalize.cloudRoundFor(currentMeta, qIndex) + 1;
+    updateMeta({ cloudRounds: rounds, revealed: false, phase: 'question' }).catch(function (e) {
+      alert(e.message || e);
+    });
+  }
+
   function onBoard() {
     boardVisible = true;
     var qIndex = currentMeta ? Number(currentMeta.currentQ) : 0;
@@ -824,6 +846,7 @@
 
   $('startRoomBtn').addEventListener('click', createRoom);
   $('nextBtn').addEventListener('click', onAdvance);
+  if ($('newCloudBtn')) $('newCloudBtn').addEventListener('click', onNewCloud);
   if ($('boardBtn')) $('boardBtn').addEventListener('click', onBoard);
   if ($('reviewBtn')) $('reviewBtn').addEventListener('click', onReview);
   if ($('reviewFromPodiumBtn')) $('reviewFromPodiumBtn').addEventListener('click', onReview);

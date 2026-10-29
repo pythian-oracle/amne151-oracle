@@ -159,6 +159,34 @@ try {
 
   await host.click('#closeReviewBtn');
   await sleep(400);
+
+  // Start new word cloud: clears screen; round-1 answers appear, old ones don't
+  if (!(await host.isVisible('#newCloudBtn'))) throw new Error('newCloudBtn not visible on cloud Q');
+  await host.click('#newCloudBtn');
+  await sleep(1500);
+  const cleared = await host.evaluate(() => ({
+    words: document.querySelectorAll('#cloud .wc-word').length,
+    resp: document.getElementById('respCount').textContent.trim()
+  }));
+  console.log('CLEARED', JSON.stringify(cleared));
+  if (cleared.words !== 0 || cleared.resp !== '0') throw new Error('cloud not cleared: ' + JSON.stringify(cleared));
+  const r1 = await host.evaluate(async ({ roomCode }) => {
+    const cfg = window.FIREBASE_CONFIG;
+    const { initializeApp } = await import('https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js');
+    const { getAuth, signInAnonymously } = await import('https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js');
+    const { getDatabase, ref, set } = await import('https://www.gstatic.com/firebasejs/13.1.0/firebase-database.js');
+    const app = initializeApp(cfg, 'r1' + Math.random().toString(36).slice(2, 6));
+    const auth = getAuth(app); await signInAnonymously(auth);
+    await set(ref(getDatabase(app), `rooms/${roomCode}/answers/10/${auth.currentUser.uid}`),
+      { kind: 'cloud', words: { 0: { raw: 'kleos', norm: 'kleos' } }, raw: 'kleos', norm: 'kleos', at: Date.now(), round: 1 });
+    return 'OK';
+  }, { roomCode: room });
+  await sleep(1500);
+  const after = await host.evaluate(() => [...document.querySelectorAll('#cloud .wc-word')].map((w) => w.textContent.trim()));
+  console.log('ROUND1', r1, JSON.stringify(after));
+  if (after.length !== 1 || !/kleos/i.test(after[0])) throw new Error('round 1 cloud wrong: ' + JSON.stringify(after));
+  if (!/Next question|Final/i.test(await host.textContent('#nextBtn')) && !/Reveal/i.test(await host.textContent('#nextBtn'))) throw new Error('nextBtn label odd');
+  await host.screenshot({ path: path.join(shotsDir, 'host-newcloud.png'), fullPage: true });
   await host.click('#endBtn', { force: true });
   await sleep(1000);
   console.log('WORDCLOUD_TEST_PASS');
