@@ -19,6 +19,11 @@
     <section id="intro" class="panel">
       <p class="scroll speech">Before the gates of Thebes, the Sphinx poses her riddles. Answer at your own pace; she will tell you at once whether you have spoken truly. Nothing leaves this browser.</p>
       <p id="quizMeta" class="hint"></p>
+      <label class="hard-toggle" for="hardModeSelf">
+        <input type="checkbox" id="hardModeSelf">
+        <span class="hard-switch" aria-hidden="true"></span>
+        <span class="hard-label"><strong>Hard Mode</strong> — type answers instead of choosing from a list</span>
+      </label>
       <div class="nav">
         <button type="button" class="btn primary" id="startBtn">Begin</button>
       </div>
@@ -31,6 +36,7 @@
       <input type="text" id="answer" autocomplete="off" autocapitalize="words" enterkeyhint="done">
       <textarea id="answerLong" class="hidden" rows="4" autocomplete="off"></textarea>
       <div id="mcBox" class="mc-box hidden" role="group"></div>
+      <div id="hardMcBox" class="hard-mc hidden" role="group"></div>
       <div id="cloudBox" class="cloud-inputs hidden"></div>
       <div id="feedback" class="feedback hidden" role="status"></div>
       <div class="nav">

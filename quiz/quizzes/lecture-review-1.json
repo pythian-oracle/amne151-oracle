@@ -22,7 +22,12 @@
       "correct": [
         2
       ],
-      "revealNote": null
+      "revealNote": null,
+      "aliases": {
+        "Aphrodite": [
+          "Afrodite"
+        ]
+      }
     },
     {
       "id": "i0b",
@@ -46,7 +51,20 @@
         5,
         6
       ],
-      "revealNote": "Hector and Priam are Trojan. Clytemnestra (Agamemnon’s wife) and Electra (their daughter) belong to the House of Atreus."
+      "revealNote": "Hector and Priam are Trojan. Clytemnestra (Agamemnon’s wife) and Electra (their daughter) belong to the House of Atreus.",
+      "aliases": {
+        "Clytemnestra": [
+          "Klytaimnestra",
+          "Clytaemnestra",
+          "Klytemnestra"
+        ],
+        "Electra": [
+          "Elektra"
+        ],
+        "Menelaus": [
+          "Menelaos"
+        ]
+      }
     },
     {
       "id": "i7",
@@ -70,7 +88,25 @@
         5,
         6
       ],
-      "revealNote": "Agamemnon is Mycenaean (House of Atreus); Achilles is from Phthia. Paris, also called Alexander, is another Trojan prince. Andromache is Hector’s wife (Trojan royal household by marriage)."
+      "revealNote": "Agamemnon is Mycenaean (House of Atreus); Achilles is from Phthia. Paris, also called Alexander, is another Trojan prince. Andromache is Hector’s wife (Trojan royal household by marriage).",
+      "aliases": {
+        "Hecuba": [
+          "Hekabe",
+          "Hecabe"
+        ],
+        "Cassandra": [
+          "Kassandra"
+        ],
+        "Andromache": [
+          "Andromakhe"
+        ],
+        "Hector": [
+          "Hektor"
+        ],
+        "Priam": [
+          "Priamos"
+        ]
+      }
     },
     {
       "id": "i6",
@@ -92,7 +128,17 @@
         3,
         5
       ],
-      "revealNote": "Cadmus founded Thebes; his line includes Semele (mother of Dionysus), Agave and her son Pentheus, and through Labdacus and Laius, Oedipus. Theseus is Athenian; Jason is from Iolcus."
+      "revealNote": "Cadmus founded Thebes; his line includes Semele (mother of Dionysus), Agave and her son Pentheus, and through Labdacus and Laius, Oedipus. Theseus is Athenian; Jason is from Iolcus.",
+      "aliases": {
+        "Agave": [
+          "Agaue"
+        ],
+        "Oedipus": [
+          "Oidipous",
+          "Oedipous",
+          "Oidipus"
+        ]
+      }
     },
     {
       "id": "h1",

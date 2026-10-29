@@ -11,6 +11,7 @@
   var playersUnsub = null;
   var answersUnsub = null;
   var currentMeta = null;
+  var hardMode = false;
   var playersMap = {};
   var answersTree = {};
   var lastSubmittedQ = null;
@@ -62,7 +63,7 @@
   }
 
   function hideInputs() {
-    hide($('answer')); hide($('answerLong')); hide($('mcBox')); hide($('cloudBox'));
+    hide($('answer')); hide($('answerLong')); hide($('mcBox')); if ($('hardMcBox')) { hide($('hardMcBox')); $('hardMcBox').innerHTML = ''; } hide($('cloudBox'));
     $('mcBox').innerHTML = '';
     $('cloudBox').innerHTML = '';
   }
@@ -184,6 +185,73 @@
     return out;
   }
 
+  function hardNeedCount(q) {
+    if (q.multi) return (q.correct || []).length || 1;
+    return 1;
+  }
+
+  function renderHardMc(q) {
+    var box = $('hardMcBox');
+    var need = hardNeedCount(q);
+    var multi = !!q.multi;
+    var wrap, row, inp, addBtn, hint, i;
+    box.innerHTML = '';
+    hint = document.createElement('p');
+    hint.className = 'hard-count-hint';
+    hint.textContent = multi
+      ? ('Name all ' + need + ' — separate with commas or add another box.')
+      : 'Type the answer (spelling variants OK).';
+    box.appendChild(hint);
+    wrap = document.createElement('div');
+    wrap.className = 'hard-entries';
+    box.appendChild(wrap);
+    function addRow(val) {
+      inp = document.createElement('input');
+      inp.type = 'text';
+      inp.autocomplete = 'off';
+      inp.autocapitalize = 'words';
+      inp.maxLength = 60;
+      inp.placeholder = multi ? 'Name' : 'Answer';
+      if (val) inp.value = val;
+      wrap.appendChild(inp);
+      return inp;
+    }
+    addRow('');
+    if (multi) {
+      addBtn = document.createElement('button');
+      addBtn.type = 'button';
+      addBtn.className = 'btn hard-add';
+      addBtn.textContent = 'Add another';
+      addBtn.addEventListener('click', function () {
+        var n = addRow('');
+        n.focus();
+      });
+      box.appendChild(addBtn);
+    }
+    show(box);
+    var first = wrap.querySelector('input');
+    if (first) first.focus();
+  }
+
+  function hardMcEntries() {
+    var box = $('hardMcBox');
+    if (!box) return [];
+    var inputs = box.querySelectorAll('.hard-entries input');
+    var parts = [], i, t;
+    if (inputs.length) {
+      for (i = 0; i < inputs.length; i++) {
+        t = String(inputs[i].value || '').trim();
+        if (t) parts.push(t);
+      }
+    }
+    // Also split commas inside each field
+    var flat = [];
+    for (i = 0; i < parts.length; i++) {
+      QuizNormalize.parseHardModeEntries(parts[i]).forEach(function (x) { flat.push(x); });
+    }
+    return flat;
+  }
+
   function renderCloud(q) {
     var n = Math.min(5, Math.max(1, Number(q.max) || 3));
     var box = $('cloudBox'), i, inp;
@@ -230,8 +298,15 @@
         $('answerLong').value = '';
         $('answerLong').focus();
       } else if (k === 'mc') {
-        $('typeHint').textContent = q.multi ? 'Tap all that apply.' : 'Tap one option.';
-        renderMc(q);
+        if (hardMode) {
+          $('typeHint').textContent = q.multi
+            ? ('Hard Mode · name all ' + hardNeedCount(q) + '.')
+            : 'Hard Mode · type the answer.';
+          renderHardMc(q);
+        } else {
+          $('typeHint').textContent = q.multi ? 'Tap all that apply.' : 'Tap one option.';
+          renderMc(q);
+        }
       } else if (k === 'cloud') {
         $('typeHint').textContent = 'Up to ' + (q.max || 3) + ' short words.';
         renderCloud(q);
@@ -262,7 +337,9 @@
   }
 
   function onMeta(meta) {
+    var prevHard = hardMode;
     currentMeta = meta;
+    hardMode = !!(meta && meta.hardMode);
     if (!meta || meta.ended) {
       hide($('joinPanel'));
       hide($('waitPanel'));
@@ -277,6 +354,7 @@
       showWaiting('Waiting…');
       return;
     }
+    if (prevHard !== hardMode) renderedQ = -1;
     showAnswerUI(q, qIndex);
   }
 
@@ -354,6 +432,27 @@
     var k = kind(q);
     var raw, norm, sel, words, i, wnorm, wordsObj, labels, choiceStr;
     if (k === 'mc') {
+      if (hardMode) {
+        var entries = hardMcEntries();
+        if (!entries.length) return { error: 'Type at least one answer.' };
+        var mapped = QuizNormalize.mapHardModeAnswer(entries, q);
+        if (!mapped.matched.length && mapped.unmatched.length) {
+          // Still submit phantoms so host can score 0
+        }
+        raw = mapped.raw || entries.join(', ');
+        norm = QuizNormalize.normalizeAnswer(raw) || mapped.choiceStr || 'x';
+        if (!mapped.choiceStr) {
+          mapped.choiceStr = String((q.options || []).length);
+        }
+        return {
+          kind: 'mc',
+          choiceStr: mapped.choiceStr,
+          raw: String(raw).slice(0, 280),
+          norm: String(norm).slice(0, 280),
+          hardMode: true,
+          at: Date.now()
+        };
+      }
       sel = selectedMc();
       if (!sel.length) return { error: 'Tap at least one option.' };
       choiceStr = QuizNormalize.choiceStrFromIndices(sel);

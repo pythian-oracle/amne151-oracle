@@ -49,3 +49,16 @@ const kinds = quiz.questions.map((q) => N.questionKind(q));
 assert.ok(kinds.includes('mc') && kinds.includes('cloud') && kinds.includes('open') && kinds.includes('short'));
 
 console.log('normalize + quiz JSON: OK');
+
+// Hard Mode mapping
+const hmQ = {
+  type: 'mc', multi: true,
+  options: ['Agamemnon', 'Menelaus', 'Hector', 'Orestes', 'Priam', 'Clytemnestra', 'Electra'],
+  correct: [0, 1, 3, 5, 6],
+  aliases: { Clytemnestra: ['Klytaimnestra'], Electra: ['Elektra'], Menelaus: ['Menelaos'] }
+};
+const hm = N.gradeHardModeMc('Klytaimnestra, Elektra, Agamemnon, Menelaos, Orestes', hmQ);
+assert(hm.exact, 'hard mode Atreus aliases should exact-match');
+const hm2 = N.gradeHardModeMc('Aphrodite', { type: 'mc', multi: false, options: ['Hera', 'Athena', 'Aphrodite'], correct: [2] });
+assert(hm2.exact, 'hard mode single Aphrodite');
+console.log('hard-mode normalize: OK');

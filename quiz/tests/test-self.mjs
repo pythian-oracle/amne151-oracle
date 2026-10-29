@@ -43,6 +43,7 @@ async function answerMc(indices) {
 
 try {
   await page.goto('http://127.0.0.1:8765/quiz/self.html?quiz=lecture-review-1', { waitUntil: 'networkidle' });
+  await page.waitForSelector('#startBtn:not([disabled])', { timeout: 10000 });
   await page.click('#startBtn');
 
   // Q0 mc single Aphrodite
@@ -95,4 +96,43 @@ try {
 } finally {
   await browser.close();
   server.kill('SIGTERM');
+}
+
+// ---- Hard Mode pass ----
+{
+  const browser2 = await playwright.chromium.launch({ headless: true });
+  const page2 = await browser2.newPage();
+  const server2 = spawn('python3', ['-m', 'http.server', '8766'], { cwd: root, stdio: 'ignore' });
+  await sleep(600);
+  try {
+    await page2.goto('http://127.0.0.1:8766/quiz/self.html?quiz=lecture-review-1', { waitUntil: 'networkidle' });
+    await page2.waitForSelector('#startBtn:not([disabled])', { timeout: 10000 });
+    await page2.locator('label[for="hardModeSelf"]').click();
+    await page2.click('#startBtn');
+    await page2.waitForSelector('#hardMcBox:visible');
+    // Q0 Aphrodite
+    await page2.fill('#hardMcBox .hard-entries input', 'Aphrodite');
+    await page2.click('#checkBtn');
+    await page2.waitForSelector('#feedback:not(.hidden)');
+    assert.ok(/Correct/i.test(await page2.textContent('#feedback')));
+    await page2.click('#nextBtn');
+    // Q1 Atreus with aliases
+    await page2.waitForSelector('#hardMcBox:visible');
+    const entries = page2.locator('#hardMcBox .hard-entries input');
+    await entries.nth(0).fill('Klytaimnestra, Elektra, Agamemnon');
+    await page2.click('button.hard-add');
+    await page2.locator('#hardMcBox .hard-entries input').nth(1).fill('Menelaos');
+    await page2.click('button.hard-add');
+    await page2.locator('#hardMcBox .hard-entries input').nth(2).fill('Orestes');
+    await page2.click('#checkBtn');
+    await page2.waitForSelector('#feedback:not(.hidden)');
+    const fb = await page2.textContent('#feedback');
+    assert.ok(/Correct|You typed/i.test(fb), fb);
+    await page2.screenshot({ path: path.join(shotsDir, 'hard-mode-self.png'), fullPage: true });
+    console.log('SHOT: hard-mode-self.png');
+    console.log('self-quiz hard-mode E2E: OK');
+  } finally {
+    await browser2.close();
+    server2.kill('SIGTERM');
+  }
 }

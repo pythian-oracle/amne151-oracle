@@ -25,6 +25,11 @@
         </select>
         <button type="button" class="btn primary" id="startRoomBtn">Open room</button>
       </div>
+      <label class="hard-toggle" for="hardModeSetup">
+        <input type="checkbox" id="hardModeSetup">
+        <span class="hard-switch" aria-hidden="true"></span>
+        <span class="hard-label"><strong>Hard Mode</strong> — students type answers instead of tapping choices</span>
+      </label>
       <p class="hint">A secret host link is kept in this browser so you can refresh without losing control. Do not share the host link with students.</p>
     </section>
 
@@ -36,6 +41,11 @@
           <div class="room-code" id="roomCodeDisplay">————</div>
           <p class="join-url" id="joinUrl"></p>
           <p class="hint" style="margin-top:.6rem">One section at a time · anonymous</p>
+          <label class="hard-toggle hard-toggle-live" for="hardModeLive">
+            <input type="checkbox" id="hardModeLive">
+            <span class="hard-switch" aria-hidden="true"></span>
+            <span class="hard-label"><strong>Hard Mode</strong></span>
+          </label>
         </aside>
         <div class="panel">
           <div class="stats">

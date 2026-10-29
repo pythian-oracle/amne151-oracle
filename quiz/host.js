@@ -266,10 +266,14 @@
       if (k === 'short' || k === 'type') {
         if (QuizNormalize.matchesAccepted(ans.raw || '', (q && q.accepted) || []).ok) correct += 1;
       } else if (k === 'mc') {
-        sel = ans.choices
-          ? QuizNormalize.sortedUniqueNums(ans.choices)
-          : QuizNormalize.indicesFromChoiceStr(ans.choiceStr);
-        g = QuizNormalize.gradeMc(sel, (q && q.correct) || [], !!(q && q.multi));
+        if (ans.hardMode && ans.raw && QuizNormalize.gradeHardModeMc) {
+          g = QuizNormalize.gradeHardModeMc(ans.raw, q || {});
+        } else {
+          sel = ans.choices
+            ? QuizNormalize.sortedUniqueNums(ans.choices)
+            : QuizNormalize.indicesFromChoiceStr(ans.choiceStr);
+          g = QuizNormalize.gradeMc(sel, (q && q.correct) || [], !!(q && q.multi));
+        }
         if (g.exact) correct += 1;
         else if (g.partial) partial += 1;
       }
@@ -545,10 +549,32 @@
     $('roomCodeDisplay').textContent = code;
     $('joinUrl').textContent = joinUrlFor(code);
     renderQr(joinUrlFor(code));
+    if ($('hardModeLive') && $('hardModeSetup')) {
+      $('hardModeLive').checked = !!$('hardModeSetup').checked;
+    }
     // Keep host token in URL without forcing reload if already there
     if (location.search.indexOf('host=') === -1) {
       history.replaceState(null, '', hostUrlFor(code, token));
     }
+  }
+
+  function syncHardModeUI() {
+    var on = !!(currentMeta && currentMeta.hardMode);
+    var live = $('hardModeLive');
+    if (live && live.checked !== on) live.checked = on;
+  }
+
+  function setHardMode(on) {
+    on = !!on;
+    var live = $('hardModeLive');
+    var setup = $('hardModeSetup');
+    if (live) live.checked = on;
+    if (setup && !roomCode) setup.checked = on;
+    if (!roomCode || !currentMeta) return Promise.resolve();
+    return updateMeta({ hardMode: on }).catch(function (err) {
+      alert('Could not update Hard Mode: ' + (err.message || err));
+      syncHardModeUI();
+    });
   }
 
   function createRoom() {
@@ -574,7 +600,8 @@
           ended: false,
           createdAt: opened0,
           questionOpenedAt: opened0,
-          openedByQ: { 0: opened0 }
+          openedByQ: { 0: opened0 },
+          hardMode: !!( $('hardModeSetup') && $('hardModeSetup').checked )
         };
         return fb.set(fb.ref('rooms/' + code + '/meta'), meta).then(function () {
           saveSession(code, token, quizId);

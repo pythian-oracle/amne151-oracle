@@ -256,10 +256,15 @@
       return matchesAccepted(ans.raw || '', q.accepted || []).ok ? 1 : 0;
     }
     if (k === 'mc') {
-      var sel = ans.choices
-        ? sortedUniqueNums(ans.choices)
-        : indicesFromChoiceStr(ans.choiceStr);
-      var g = gradeMc(sel, q.correct || [], !!q.multi);
+      var g, sel;
+      if (ans.hardMode && ans.raw) {
+        g = gradeHardModeMc(ans.raw, q);
+      } else {
+        sel = ans.choices
+          ? sortedUniqueNums(ans.choices)
+          : indicesFromChoiceStr(ans.choiceStr);
+        g = gradeMc(sel, q.correct || [], !!q.multi);
+      }
       if (g.exact) return 1;
       if (q.multi && g.partial && (q.correct || []).length) {
         return g.hit / (q.correct || []).length;
@@ -378,6 +383,141 @@
     return (nick.slice(0, 12) + ' ' + String(Date.now()).slice(-4)).slice(0, 20);
   }
 
+
+  /** Built-in spelling variants for Hard Mode (keyed by common English form). */
+  var BUILTIN_OPTION_ALIASES = {
+    Aphrodite: ['Afrodite'],
+    Clytemnestra: ['Klytaimnestra', 'Clytaemnestra', 'Klytemnestra', 'Clytaimestra'],
+    Electra: ['Elektra'],
+    Menelaus: ['Menelaos'],
+    Hecuba: ['Hekabe', 'Hecabe', 'Hekuba'],
+    Cassandra: ['Kassandra'],
+    Andromache: ['Andromakhe'],
+    Agave: ['Agaue'],
+    Semele: ['Semele'],
+    Pentheus: ['Pentheus'],
+    Oedipus: ['Oidipous', 'Oedipous', 'Oidipus'],
+    Agamemnon: ['Agamemnon'],
+    Achilles: ['Akhilleus', 'Achilleus'],
+    Hector: ['Hektor'],
+    Priam: ['Priamos'],
+    Theseus: ['Theseus'],
+    Jason: ['Iason'],
+    Orestes: ['Orestes'],
+    Hera: ['Here'],
+    Athena: ['Athene', 'Athēna']
+  };
+
+  function parseHardModeEntries(raw) {
+    var s = String(raw || '').replace(/\r/g, '\n');
+    var parts = s.split(/[\n,;|/]+/);
+    var out = [], i, t;
+    for (i = 0; i < parts.length; i++) {
+      t = String(parts[i] || '').replace(/\s+/g, ' ').trim();
+      if (t) out.push(t);
+    }
+    return out;
+  }
+
+  function optionLabel(q, index) {
+    var o = (q && q.options && q.options[index]);
+    if (o && typeof o === 'object') return o.text || o.label || '';
+    return o == null ? '' : String(o);
+  }
+
+  /** Alias strings for one option index (option text + JSON aliases + builtins). */
+  function aliasesForOption(q, index) {
+    var label = optionLabel(q, index);
+    var out = [];
+    var seen = Object.create(null);
+    function add(x) {
+      var s = String(x || '').trim();
+      if (!s) return;
+      var k = s.toLowerCase();
+      if (seen[k]) return;
+      seen[k] = true;
+      out.push(s);
+    }
+    add(label);
+    var o = q && q.options && q.options[index];
+    if (o && typeof o === 'object' && o.aliases) {
+      (o.aliases || []).forEach(add);
+    }
+    if (q && q.aliases && label && q.aliases[label]) {
+      (q.aliases[label] || []).forEach(add);
+    }
+    if (q && Array.isArray(q.optionAliases) && q.optionAliases[index]) {
+      (q.optionAliases[index] || []).forEach(add);
+    }
+    if (BUILTIN_OPTION_ALIASES[label]) {
+      BUILTIN_OPTION_ALIASES[label].forEach(add);
+    }
+    return out;
+  }
+
+  /** Match one typed token to an option index, or -1. */
+  function matchOptionIndex(raw, q, usedMap) {
+    var opts = (q && q.options) || [];
+    var i, aliases, m;
+    for (i = 0; i < opts.length; i++) {
+      if (usedMap && usedMap[i]) continue;
+      aliases = aliasesForOption(q, i);
+      m = matchesAccepted(raw, aliases);
+      if (m.ok) return i;
+    }
+    return -1;
+  }
+
+  /**
+   * Map Hard Mode typed entries → MC indices.
+   * Unmatched tokens become phantom wrong indices (>= options.length) so they
+   * penalize exactness the same way as tapping a wrong option.
+   * Returns { indices, unmatched, choiceStr, raw, labels }.
+   */
+  function mapHardModeAnswer(rawOrList, q) {
+    var entries = Array.isArray(rawOrList) ? rawOrList : parseHardModeEntries(rawOrList);
+    var opts = (q && q.options) || [];
+    var used = Object.create(null);
+    var indices = [];
+    var unmatched = [];
+    var labels = [];
+    var i, ix, phantom;
+    for (i = 0; i < entries.length; i++) {
+      ix = matchOptionIndex(entries[i], q, used);
+      if (ix >= 0) {
+        used[ix] = true;
+        indices.push(ix);
+        labels.push(optionLabel(q, ix));
+      } else {
+        unmatched.push(entries[i]);
+        labels.push(entries[i]);
+      }
+    }
+    phantom = opts.length;
+    for (i = 0; i < unmatched.length; i++) {
+      indices.push(phantom + i);
+    }
+    var matchedOnly = sortedUniqueNums(indices.filter(function (n) { return n < opts.length; }));
+    var phantoms = [];
+    for (i = 0; i < unmatched.length; i++) phantoms.push(opts.length + i);
+    return {
+      indices: matchedOnly.concat(phantoms),
+      matched: matchedOnly,
+      unmatched: unmatched,
+      choiceStr: choiceStrFromIndices(matchedOnly.concat(phantoms)),
+      raw: entries.join(', '),
+      labels: labels
+    };
+  }
+
+  function gradeHardModeMc(rawOrList, q) {
+    var mapped = mapHardModeAnswer(rawOrList, q);
+    var g = gradeMc(mapped.indices, (q && q.correct) || [], !!(q && q.multi));
+    g.mapped = mapped;
+    return g;
+  }
+
+
   global.QuizNormalize = {
     normalizeAnswer: normalizeAnswer,
     matchesAccepted: matchesAccepted,
@@ -397,6 +537,12 @@
     computeLeaderboard: computeLeaderboard,
     sanitizeNick: sanitizeNick,
     uniquifyNick: uniquifyNick,
+    parseHardModeEntries: parseHardModeEntries,
+    aliasesForOption: aliasesForOption,
+    matchOptionIndex: matchOptionIndex,
+    mapHardModeAnswer: mapHardModeAnswer,
+    gradeHardModeMc: gradeHardModeMc,
+    optionLabel: optionLabel,
     SCORE_BASE: SCORE_BASE,
     SCORE_SPEED: SCORE_SPEED,
     SCORE_WINDOW_MS: SCORE_WINDOW_MS

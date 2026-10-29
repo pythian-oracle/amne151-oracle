@@ -8,6 +8,8 @@
   var score = 0;
   var scored = 0;
   var answered = false;
+  var hardMode = false;
+  var HARD_KEY = 'sphinx-hard-mode';
   /** @type {Array<{kind:string, prompt:string, section:string, yourText:string, mark:string, correctHtml:string, note:string}>} */
   var history = [];
 
@@ -48,6 +50,8 @@
 
   function hideInputs() {
     hide(answer); hide(answerLong); hide(mcBox); hide(cloudBox);
+    var hardBox = $('hardMcBox');
+    if (hardBox) { hide(hardBox); hardBox.innerHTML = ''; }
     mcBox.innerHTML = '';
     cloudBox.innerHTML = '';
   }
@@ -79,6 +83,66 @@
     var out = [], i;
     for (i = 0; i < inputs.length; i++) out.push(Number(inputs[i].value));
     return out;
+  }
+
+  function hardNeedCount(q) {
+    if (q.multi) return (q.correct || []).length || 1;
+    return 1;
+  }
+
+  function renderHardMc(q) {
+    var box = $('hardMcBox');
+    var need = hardNeedCount(q);
+    var multi = !!q.multi;
+    var wrap, inp, addBtn, hint;
+    box.innerHTML = '';
+    hint = document.createElement('p');
+    hint.className = 'hard-count-hint';
+    hint.textContent = multi
+      ? ('Name all ' + need + ' — commas or add another box.')
+      : 'Type the answer (spelling variants OK).';
+    box.appendChild(hint);
+    wrap = document.createElement('div');
+    wrap.className = 'hard-entries';
+    box.appendChild(wrap);
+    function addRow(val) {
+      inp = document.createElement('input');
+      inp.type = 'text';
+      inp.autocomplete = 'off';
+      inp.autocapitalize = 'words';
+      inp.maxLength = 60;
+      inp.placeholder = multi ? 'Name' : 'Answer';
+      if (val) inp.value = val;
+      wrap.appendChild(inp);
+      return inp;
+    }
+    addRow('');
+    if (multi) {
+      addBtn = document.createElement('button');
+      addBtn.type = 'button';
+      addBtn.className = 'btn hard-add';
+      addBtn.textContent = 'Add another';
+      addBtn.addEventListener('click', function () { addRow('').focus(); });
+      box.appendChild(addBtn);
+    }
+    show(box);
+    var first = wrap.querySelector('input');
+    if (first) first.focus();
+  }
+
+  function hardMcEntries() {
+    var box = $('hardMcBox');
+    if (!box) return [];
+    var inputs = box.querySelectorAll('.hard-entries input');
+    var parts = [], i, raw, flat = [];
+    for (i = 0; i < inputs.length; i++) {
+      raw = String(inputs[i].value || '').trim();
+      if (raw) parts.push(raw);
+    }
+    for (i = 0; i < parts.length; i++) {
+      QuizNormalize.parseHardModeEntries(parts[i]).forEach(function (x) { flat.push(x); });
+    }
+    return flat;
   }
 
   function renderCloudInputs(q) {
@@ -129,10 +193,17 @@
       $('typeHint').textContent = 'Open-ended — write briefly, then compare with the model answer.';
       answerLong.focus();
     } else if (k === 'mc') {
-      $('typeHint').textContent = q.multi
-        ? 'Select all that apply, then check.'
-        : 'Choose one option, then check.';
-      renderMc(q);
+      if (hardMode) {
+        $('typeHint').textContent = q.multi
+          ? ('Hard Mode · name all ' + hardNeedCount(q) + '.')
+          : 'Hard Mode · type the answer.';
+        renderHardMc(q);
+      } else {
+        $('typeHint').textContent = q.multi
+          ? 'Select all that apply, then check.'
+          : 'Choose one option, then check.';
+        renderMc(q);
+      }
     } else if (k === 'cloud') {
       $('typeHint').textContent = 'Enter up to ' + (q.max || 3) + ' short words or phrases.';
       renderCloudInputs(q);
@@ -165,19 +236,32 @@
     note = q.revealNote || '';
 
     if (k === 'mc') {
-      sel = selectedMc();
-      if (!sel.length) {
-        feedback.className = 'feedback incorrect';
-        feedback.innerHTML = '<span class="tag">Empty.</span> Choose at least one option.';
-        show(feedback);
-        return;
+      opts = q.options || [];
+      if (hardMode) {
+        var entries = hardMcEntries();
+        if (!entries.length) {
+          feedback.className = 'feedback incorrect';
+          feedback.innerHTML = '<span class="tag">Empty.</span> Type at least one answer.';
+          show(feedback);
+          return;
+        }
+        g = QuizNormalize.gradeHardModeMc(entries, q);
+        sel = g.mapped.matched;
+        yourText = entries.join(', ');
+      } else {
+        sel = selectedMc();
+        if (!sel.length) {
+          feedback.className = 'feedback incorrect';
+          feedback.innerHTML = '<span class="tag">Empty.</span> Choose at least one option.';
+          show(feedback);
+          return;
+        }
+        g = QuizNormalize.gradeMc(sel, q.correct || [], !!q.multi);
+        yourText = sel.map(function (ix) { return opts[ix] || String(ix); }).join(', ');
       }
-      g = QuizNormalize.gradeMc(sel, q.correct || [], !!q.multi);
       scored += 1;
       if (g.exact) score += 1;
-      opts = q.options || [];
       cor = g.correct;
-      yourText = sel.map(function (ix) { return opts[ix] || String(ix); }).join(', ');
       mark = g.exact ? 'correct' : (g.partial ? 'partial' : 'incorrect');
       correctHtml = '<ul class="rq-opts">';
       for (i = 0; i < opts.length; i++) {
@@ -190,12 +274,19 @@
           '</li>';
       }
       correctHtml += '</ul>';
-      html = '<span class="tag">' + (g.exact ? 'Correct' : (g.partial ? 'Partly right' : 'Not quite')) + '</span>' + correctHtml;
+      if (hardMode) {
+        html = '<span class="tag">' + (g.exact ? 'Correct' : (g.partial ? 'Partly right' : 'Not quite')) + '</span>' +
+          '<p class="rq-you">You typed: <mark class="' + (g.exact ? 'ok' : (g.partial ? 'partial' : 'bad')) + '">' +
+          escapeHtml(yourText) + '</mark></p>' + correctHtml;
+      } else {
+        html = '<span class="tag">' + (g.exact ? 'Correct' : (g.partial ? 'Partly right' : 'Not quite')) + '</span>' + correctHtml;
+      }
       if (note) html += '<p class="hint">' + escapeHtml(note) + '</p>';
       feedback.className = 'feedback ' + (g.exact ? 'correct' : 'incorrect');
       feedback.innerHTML = html;
       show(feedback);
       Array.prototype.forEach.call(mcBox.querySelectorAll('input'), function (inp) { inp.disabled = true; });
+      Array.prototype.forEach.call(($('hardMcBox') || document).querySelectorAll('input'), function (inp) { inp.disabled = true; });
       pushHistory({
         kind: k, prompt: q.prompt, section: q.section || '',
         yourText: yourText, mark: mark, correctHtml: correctHtml, note: note
@@ -341,10 +432,24 @@
   }
 
   function start() {
+    var toggle = $('hardModeSelf');
+    hardMode = !!(toggle && toggle.checked);
+    try { localStorage.setItem(HARD_KEY, hardMode ? '1' : '0'); } catch (e) {}
     idx = 0; score = 0; scored = 0; history = [];
     hide(intro); hide(doneEl); show(quizEl);
     if ($('selfReviewList')) $('selfReviewList').innerHTML = '';
     renderQuestion();
+  }
+
+  function restoreHardToggle() {
+    var toggle = $('hardModeSelf');
+    if (!toggle) return;
+    try {
+      if (localStorage.getItem(HARD_KEY) === '1') toggle.checked = true;
+    } catch (e) {}
+    toggle.addEventListener('change', function () {
+      try { localStorage.setItem(HARD_KEY, toggle.checked ? '1' : '0'); } catch (e2) {}
+    });
   }
 
   $('startBtn').addEventListener('click', start);
@@ -358,5 +463,6 @@
     }
   });
 
+  restoreHardToggle();
   loadQuiz();
 })();
