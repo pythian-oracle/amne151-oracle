@@ -67,9 +67,7 @@ textarea{min-height:5.5rem;resize:vertical}
 .bar-fill{height:100%;background:var(--terra);border-radius:3px;min-width:2px;transition:width .25s ease}
 .bar-row.correct .bar-fill{background:var(--olive)}
 .bar-count{font-variant-numeric:tabular-nums;color:var(--muted);min-width:2rem;text-align:right}
-.cloud{display:flex;flex-wrap:wrap;gap:.35rem .7rem;align-items:center;justify-content:center;min-height:4rem;padding:.6rem;margin-top:.5rem}
-.cloud span{color:var(--ink);line-height:1.1}
-.cloud span.is-correct{color:var(--ok);font-weight:bold}
+/* legacy cloud spans replaced by packed SphinxWordCloud */
 .host-controls{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem}
 .setup-row{display:grid;gap:.7rem;margin:.8rem 0}
 #configBanner{margin:0 1.2rem 1rem}
@@ -104,3 +102,40 @@ textarea{min-height:5.5rem;resize:vertical}
 .podium .p2{order:1;min-height:5.2rem}
 .podium .p3{order:3;min-height:4.2rem}
 .podium .place b{display:block;font-size:1.2rem}
+
+/* Review screens (host + self) */
+.review-panel{max-height:70vh;overflow:auto}
+.review-head{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:.4rem}
+.review-list{display:flex;flex-direction:column;gap:.85rem;margin-top:.6rem}
+.review-item{border:1px solid var(--line);border-radius:6px;padding:.85rem 1rem;background:#FFFDF8}
+.review-item .rq-num{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 .25rem}
+.review-item .rq-prompt{font-size:1.2rem;font-weight:bold;margin:0 0 .55rem;line-height:1.35}
+.review-item .rq-correct{margin:0}
+.review-item .rq-primary{font-size:1.15rem;color:var(--ok)}
+.review-item .rq-variants{color:var(--muted);font-size:.95rem;margin-top:.2rem}
+.review-item .rq-note{margin:.45rem 0 0;color:var(--muted);font-size:.95rem}
+.review-item .rq-you{margin:.35rem 0 .2rem}
+.review-item mark.ok{background:#eef3e6;color:var(--ok);padding:.05rem .35rem;border-radius:3px}
+.review-item mark.bad{background:#f8ebe6;color:var(--bad);padding:.05rem .35rem;border-radius:3px}
+.review-item mark.partial{background:#F7E9DF;color:var(--terra);padding:.05rem .35rem;border-radius:3px}
+.review-item mark.neutral{background:#F1E8D4;color:var(--muted);padding:.05rem .35rem;border-radius:3px}
+.review-item ul.rq-opts{margin:.3rem 0 0;padding-left:1.1rem}
+.review-item ul.rq-opts li.is-correct{color:var(--ok);font-weight:bold}
+.review-item ul.rq-opts li.is-yours:not(.is-correct){color:var(--bad)}
+.review-item .rq-words{margin-top:.35rem;display:flex;flex-wrap:wrap;gap:.35rem .7rem}
+.review-item .rq-words span{background:#F1E8D4;border:1px solid var(--line);border-radius:999px;padding:.15rem .55rem;font-size:.95rem}
+
+.rq-stat{font-weight:bold;color:var(--terra);letter-spacing:.02em}
+
+/* Packed word cloud */
+.cloud{min-height:14rem;padding:.4rem .2rem 1rem;margin-top:.35rem;position:relative}
+.cloud .wc-meta{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap;margin:0 .4rem .35rem;font-size:.95rem;color:var(--muted)}
+.cloud .wc-top-label strong{color:var(--terra);font-size:1.1rem}
+.cloud .wc-stage{position:relative;margin:0 auto;overflow:hidden;background:linear-gradient(180deg,#FFFDF8 0%,#F1E8D4 100%);border:1px solid var(--line);border-radius:8px}
+.cloud .wc-word{position:absolute;white-space:nowrap;line-height:1;cursor:default;transition:font-size .45s ease,left .45s ease,top .45s ease,transform .45s ease,color .3s ease;transform-origin:center center;user-select:none}
+.cloud .wc-word.wc-top{text-shadow:0 1px 0 rgba(255,255,255,.5)}
+.cloud .wc-word.wc-pop{animation:wcPop .45s ease-out}
+@keyframes wcPop{from{opacity:0;transform:scale(.4)}to{opacity:1}}
+.cloud .wc-empty{display:block;text-align:center;color:var(--muted);padding:3rem 1rem}
+.review-item .wc-embed{margin-top:.55rem}
+.review-item .wc-embed .cloud{min-height:11rem}

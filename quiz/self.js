@@ -8,6 +8,8 @@
   var score = 0;
   var scored = 0;
   var answered = false;
+  /** @type {Array<{kind:string, prompt:string, section:string, yourText:string, mark:string, correctHtml:string, note:string}>} */
+  var history = [];
 
   var $ = function (id) { return document.getElementById(id); };
   var intro = $('intro'), quizEl = $('quiz'), doneEl = $('done');
@@ -151,10 +153,16 @@
     nextBtn.textContent = idx + 1 >= quiz.questions.length ? 'See score' : 'Next';
   }
 
+  function pushHistory(entry) {
+    history[idx] = entry;
+  }
+
   function check() {
     var q = current();
     var k = kind(q);
-    var m, g, html, i, opts, sel, cor, words, mark;
+    var m, g, html, i, opts, sel, cor, words, yourText, mark, correctHtml, note;
+
+    note = q.revealNote || '';
 
     if (k === 'mc') {
       sel = selectedMc();
@@ -169,28 +177,29 @@
       if (g.exact) score += 1;
       opts = q.options || [];
       cor = g.correct;
-      html = '<span class="tag">' + (g.exact ? 'Correct' : (g.partial ? 'Partly right' : 'Not quite')) + '</span><ul class="mc-review">';
+      yourText = sel.map(function (ix) { return opts[ix] || String(ix); }).join(', ');
+      mark = g.exact ? 'correct' : (g.partial ? 'partial' : 'incorrect');
+      correctHtml = '<ul class="rq-opts">';
       for (i = 0; i < opts.length; i++) {
-        mark = '';
-        if (cor.indexOf(i) !== -1) mark += ' ✓ correct';
-        if (sel.indexOf(i) !== -1) mark += (cor.indexOf(i) !== -1 ? '' : ' · your pick');
-        else if (cor.indexOf(i) !== -1) mark += '';
-        html += '<li class="' +
+        correctHtml += '<li class="' +
           (cor.indexOf(i) !== -1 ? 'is-correct' : '') +
-          (sel.indexOf(i) !== -1 && cor.indexOf(i) === -1 ? ' is-wrong' : '') +
-          (sel.indexOf(i) !== -1 ? ' is-picked' : '') +
+          (sel.indexOf(i) !== -1 ? ' is-yours' : '') +
           '">' + escapeHtml(opts[i]) +
-          (cor.indexOf(i) !== -1 ? ' <strong>(correct)</strong>' : '') +
-          (sel.indexOf(i) !== -1 && cor.indexOf(i) === -1 ? ' <em>(your choice)</em>' : '') +
+          (cor.indexOf(i) !== -1 ? ' ✓' : '') +
+          (sel.indexOf(i) !== -1 && cor.indexOf(i) === -1 ? ' (yours)' : '') +
           '</li>';
       }
-      html += '</ul>';
-      if (q.revealNote) html += '<p class="hint">' + escapeHtml(q.revealNote) + '</p>';
+      correctHtml += '</ul>';
+      html = '<span class="tag">' + (g.exact ? 'Correct' : (g.partial ? 'Partly right' : 'Not quite')) + '</span>' + correctHtml;
+      if (note) html += '<p class="hint">' + escapeHtml(note) + '</p>';
       feedback.className = 'feedback ' + (g.exact ? 'correct' : 'incorrect');
       feedback.innerHTML = html;
       show(feedback);
-      // lock inputs
       Array.prototype.forEach.call(mcBox.querySelectorAll('input'), function (inp) { inp.disabled = true; });
+      pushHistory({
+        kind: k, prompt: q.prompt, section: q.section || '',
+        yourText: yourText, mark: mark, correctHtml: correctHtml, note: note
+      });
       finishCheck();
       return;
     }
@@ -203,13 +212,22 @@
         show(feedback);
         return;
       }
+      yourText = words.join(' · ');
+      correctHtml = q.modelAnswer
+        ? '<p class="rq-primary" style="font-weight:normal">' + escapeHtml(q.modelAnswer) + '</p>'
+        : '<p class="hint">No single correct answer.</p>';
+      mark = 'none';
       feedback.className = 'feedback';
       feedback.innerHTML =
         '<span class="tag">Your words</span>' +
-        '<p style="margin:.4rem 0 0">' + escapeHtml(words.join(' · ')) + '</p>' +
+        '<p style="margin:.4rem 0 0">' + escapeHtml(yourText) + '</p>' +
         (q.modelAnswer ? '<p class="hint" style="margin:.6rem 0 0"><strong>Notes:</strong> ' + escapeHtml(q.modelAnswer) + '</p>' : '') +
-        (q.revealNote ? '<p class="hint">' + escapeHtml(q.revealNote) + '</p>' : '');
+        (note ? '<p class="hint">' + escapeHtml(note) + '</p>' : '');
       show(feedback);
+      pushHistory({
+        kind: k, prompt: q.prompt, section: q.section || '',
+        yourText: yourText, mark: mark, correctHtml: correctHtml, note: note
+      });
       finishCheck();
       return;
     }
@@ -222,12 +240,19 @@
         show(feedback);
         return;
       }
+      yourText = String(rawOpen).trim();
+      correctHtml = '<p class="rq-primary" style="font-weight:normal">' + escapeHtml(q.modelAnswer || '—') + '</p>';
+      mark = 'none';
       feedback.className = 'feedback';
       feedback.innerHTML =
         '<span class="tag">Model answer</span>' +
         '<p style="margin:.4rem 0 0">' + escapeHtml(q.modelAnswer || '') + '</p>' +
-        (q.revealNote ? '<p class="hint" style="margin:.5rem 0 0">' + escapeHtml(q.revealNote) + '</p>' : '');
+        (note ? '<p class="hint" style="margin:.5rem 0 0">' + escapeHtml(note) + '</p>' : '');
       show(feedback);
+      pushHistory({
+        kind: k, prompt: q.prompt, section: q.section || '',
+        yourText: yourText, mark: mark, correctHtml: correctHtml, note: note
+      });
       finishCheck();
       return;
     }
@@ -243,6 +268,15 @@
     m = QuizNormalize.matchesAccepted(raw, q.accepted || []);
     scored += 1;
     if (m.ok) score += 1;
+    yourText = String(raw).trim();
+    mark = m.ok ? 'correct' : 'incorrect';
+    var accepted = q.accepted || [];
+    correctHtml = accepted.length
+      ? ('<p class="rq-primary">' + escapeHtml(accepted[0]) + '</p>' +
+        (accepted.length > 1
+          ? '<p class="rq-variants">Also accepted: ' + escapeHtml(accepted.slice(1).join(', ')) + '</p>'
+          : ''))
+      : '<p class="hint">—</p>';
     feedback.className = 'feedback ' + (m.ok ? 'correct' : 'incorrect');
     if (m.ok) {
       feedback.innerHTML =
@@ -253,10 +287,42 @@
         '<span class="tag">Not quite</span>' +
         '<p style="margin:.4rem 0 0">Accepted answers include: <strong>' +
         escapeHtml((q.accepted || []).join(', ')) + '</strong>.</p>' +
-        (q.revealNote ? '<p class="hint" style="margin:.5rem 0 0">' + escapeHtml(q.revealNote) + '</p>' : '');
+        (note ? '<p class="hint" style="margin:.5rem 0 0">' + escapeHtml(note) + '</p>' : '');
     }
     show(feedback);
+    pushHistory({
+      kind: k, prompt: q.prompt, section: q.section || '',
+      yourText: yourText, mark: mark, correctHtml: correctHtml, note: note
+    });
     finishCheck();
+  }
+
+  function markLabel(mark) {
+    if (mark === 'correct') return '<mark class="ok">Correct</mark>';
+    if (mark === 'partial') return '<mark class="partial">Partial</mark>';
+    if (mark === 'incorrect') return '<mark class="bad">Incorrect</mark>';
+    return '<mark class="neutral">No mark</mark>';
+  }
+
+  function renderSelfReview() {
+    var list = $('selfReviewList');
+    var i, h, html;
+    if (!list) return;
+    html = '';
+    for (i = 0; i < history.length; i++) {
+      h = history[i];
+      if (!h) continue;
+      html += '<article class="review-item">';
+      html += '<p class="rq-num">Question ' + (i + 1) +
+        (h.section ? ' · ' + escapeHtml(h.section) : '') +
+        ' · ' + markLabel(h.mark) + '</p>';
+      html += '<p class="rq-prompt">' + escapeHtml(h.prompt) + '</p>';
+      html += '<p class="rq-you"><strong>Your answer:</strong> ' + escapeHtml(h.yourText || '—') + '</p>';
+      html += '<div class="rq-correct"><strong>Correct / model:</strong> ' + (h.correctHtml || '—') + '</div>';
+      if (h.note) html += '<p class="rq-note">' + escapeHtml(h.note) + '</p>';
+      html += '</article>';
+    }
+    list.innerHTML = html || '<p class="hint">No answers recorded.</p>';
   }
 
   function next() {
@@ -268,14 +334,16 @@
       $('scoreLine').innerHTML = scored
         ? 'You got <strong>' + score + '</strong> of <strong>' + scored + '</strong> scored questions right.'
         : 'Review complete (' + quiz.questions.length + ' questions).';
+      renderSelfReview();
       return;
     }
     renderQuestion();
   }
 
   function start() {
-    idx = 0; score = 0; scored = 0;
+    idx = 0; score = 0; scored = 0; history = [];
     hide(intro); hide(doneEl); show(quizEl);
+    if ($('selfReviewList')) $('selfReviewList').innerHTML = '';
     renderQuestion();
   }
 

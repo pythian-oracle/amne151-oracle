@@ -56,6 +56,7 @@
             <button type="button" class="btn primary" id="nextBtn">Next question</button>
             <button type="button" class="btn" id="revealBtn">Reveal correct</button>
             <button type="button" class="btn" id="boardBtn">Leaderboard</button>
+            <button type="button" class="btn" id="reviewBtn">Review all</button>
             <button type="button" class="btn danger" id="endBtn">End &amp; wipe</button>
           </div>
         </div>
@@ -64,11 +65,23 @@
         <h2 style="font-weight:normal;margin:0 0 .6rem" id="boardTitle">Leaderboard</h2>
         <ol class="leaderboard" id="leaderboard"></ol>
         <div id="podium" class="podium hidden"></div>
+        <div class="host-controls" style="margin-top:1rem">
+          <button type="button" class="btn primary hidden" id="reviewFromPodiumBtn">Review answers</button>
+        </div>
+      </section>
+      <section id="reviewPanel" class="panel hidden review-panel" style="margin-top:1rem">
+        <div class="review-head">
+          <h2 style="font-weight:normal;margin:0">Review — correct answers</h2>
+          <button type="button" class="btn" id="closeReviewBtn">Back</button>
+        </div>
+        <p class="hint">Projected key for the class. No student names.</p>
+        <div id="reviewList" class="review-list"></div>
       </section>
     </section>
   </main>
   <footer class="foot">AMNE 151 · Sphinx presenter · Firebase project amne151-sphinx</footer>
   <script src="vendor/qrcode.min.js"></script>
+  <script src="vendor/wordcloud.js"></script>
   <script src="normalize.js"></script>
   <script src="firebase-config.js"></script>
   <script src="firebase-app.js"></script>

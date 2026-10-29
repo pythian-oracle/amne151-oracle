@@ -219,10 +219,132 @@
       if (board[0]) html += '<div class="place p1"><span>1</span><b>' + escapeHtml(board[0].nick) + '</b>' + board[0].score + '</div>';
       if (board[2]) html += '<div class="place p3"><span>3</span><b>' + escapeHtml(board[2].nick) + '</b>' + board[2].score + '</div>';
       podium.innerHTML = html || '<p class="hint">No scores yet</p>';
+      if ($('reviewFromPodiumBtn')) show($('reviewFromPodiumBtn'));
     } else {
       hide(podium);
       podium.innerHTML = '';
+      if ($('reviewFromPodiumBtn')) hide($('reviewFromPodiumBtn'));
     }
+  }
+
+
+  function topCloudWordsForQuestion(qIndex, limit) {
+    var map = (answersTree && answersTree[qIndex]) || {};
+    var groups = QuizNormalize.groupCloudWords(map) || [];
+    return groups.slice(0, limit || 8);
+  }
+
+  /** Per-question room stats: {answered, correct, partial, label}. No answers → label "—". */
+  function questionRoomStats(qIndex, q) {
+    var map = (answersTree && answersTree[qIndex]) || {};
+    var k = QuizNormalize.questionKind(q || {});
+    var answered = 0, correct = 0, partial = 0, uid, ans, g, sel, pct, label;
+    for (uid in map) {
+      if (!Object.prototype.hasOwnProperty.call(map, uid) || !map[uid]) continue;
+      ans = map[uid];
+      answered += 1;
+      if (k === 'short' || k === 'type') {
+        if (QuizNormalize.matchesAccepted(ans.raw || '', (q && q.accepted) || []).ok) correct += 1;
+      } else if (k === 'mc') {
+        sel = ans.choices
+          ? QuizNormalize.sortedUniqueNums(ans.choices)
+          : QuizNormalize.indicesFromChoiceStr(ans.choiceStr);
+        g = QuizNormalize.gradeMc(sel, (q && q.correct) || [], !!(q && q.multi));
+        if (g.exact) correct += 1;
+        else if (g.partial) partial += 1;
+      }
+    }
+    if (!answered) {
+      return { answered: 0, correct: 0, partial: 0, kind: k, label: '—' };
+    }
+    if (k === 'open' || k === 'cloud') {
+      label = answered + (answered === 1 ? ' response' : ' responses');
+    } else {
+      pct = Math.round((correct / answered) * 100);
+      label = correct + '/' + answered + ' correct (' + pct + '%)';
+      if (k === 'mc' && q && q.multi && partial > 0) {
+        label += '; ' + partial + ' partial';
+      }
+    }
+    return { answered: answered, correct: correct, partial: partial, kind: k, label: label };
+  }
+
+  function renderHostReview() {
+    var list = $('reviewList');
+    var panel = $('reviewPanel');
+    var qs, i, q, k, html, accepted, opts, cor, j, words, g, st;
+    if (!list || !quiz) return;
+    qs = quiz.questions || [];
+    html = '';
+    for (i = 0; i < qs.length; i++) {
+      q = qs[i];
+      k = QuizNormalize.questionKind(q);
+      st = questionRoomStats(i, q);
+      html += '<article class="review-item">';
+      html += '<p class="rq-num">Question ' + (i + 1) + ' · ' + escapeHtml(q.section || k) +
+        ' · <span class="rq-stat">' + escapeHtml(st.label) + '</span></p>';
+      html += '<p class="rq-prompt">' + escapeHtml(q.prompt || '') + '</p>';
+      if (k === 'short' || k === 'type') {
+        accepted = q.accepted || [];
+        if (accepted.length) {
+          html += '<p class="rq-correct rq-primary">' + escapeHtml(accepted[0]) + '</p>';
+          if (accepted.length > 1) {
+            html += '<p class="rq-variants">Also accepted: ' + escapeHtml(accepted.slice(1).join(', ')) + '</p>';
+          }
+        } else {
+          html += '<p class="hint">No accepted list.</p>';
+        }
+      } else if (k === 'mc') {
+        opts = q.options || [];
+        cor = q.correct || [];
+        html += '<ul class="rq-opts">';
+        for (j = 0; j < opts.length; j++) {
+          html += '<li class="' + (cor.indexOf(j) !== -1 ? 'is-correct' : '') + '">' +
+            escapeHtml(opts[j]) +
+            (cor.indexOf(j) !== -1 ? ' ✓' : '') +
+            '</li>';
+        }
+        html += '</ul>';
+      } else if (k === 'open') {
+        html += '<p class="rq-correct"><strong>Model answer</strong></p>';
+        html += '<p class="rq-primary" style="font-weight:normal">' + escapeHtml(q.modelAnswer || '—') + '</p>';
+      } else if (k === 'cloud') {
+        if (q.modelAnswer) {
+          html += '<p class="rq-correct"><strong>Notes</strong></p>';
+          html += '<p>' + escapeHtml(q.modelAnswer) + '</p>';
+        }
+        html += '<div class="wc-embed"><div class="cloud" data-review-cloud="' + i + '" aria-label="Word cloud"></div></div>';
+      }
+      if (q.revealNote) {
+        html += '<p class="rq-note">' + escapeHtml(q.revealNote) + '</p>';
+      }
+      html += '</article>';
+    }
+    list.innerHTML = html;
+    // Paint packed clouds into review embeds
+    Array.prototype.forEach.call(list.querySelectorAll('[data-review-cloud]'), function (el) {
+      var qi = Number(el.getAttribute('data-review-cloud'));
+      var gs = topCloudWordsForQuestion(qi, 60);
+      var ansMap = (answersTree && answersTree[qi]) || {};
+      if (typeof SphinxWordCloud !== 'undefined' && SphinxWordCloud.render) {
+        SphinxWordCloud.render(el, gs, {
+          totalResponses: countAnswers(ansMap),
+          height: 260,
+          animate: false
+        });
+      }
+    });
+    show(panel);
+    try { panel.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+  }
+
+  function hideHostReview() {
+    if ($('reviewPanel')) hide($('reviewPanel'));
+  }
+
+  function onReview() {
+    hideHostReview();
+    renderHostReview();
   }
 
   function renderResults() {
@@ -233,13 +355,17 @@
     var openCards = $('openCards');
     var k, groups, max, i, g, pct, row, counts, opts, revealed, html;
     $('respCount').textContent = String(countAnswers(currentAnswers));
-    hide(bars); hide(cloud); hide(openCards);
+    hide(bars); hide(openCards);
     bars.innerHTML = '';
-    cloud.innerHTML = '';
     openCards.innerHTML = '';
     if (!q) return;
     k = QuizNormalize.questionKind(q);
     revealed = !!(currentMeta && currentMeta.revealed);
+
+    if (k !== 'cloud') {
+      hide(cloud);
+      cloud.innerHTML = '';
+    }
 
     if (k === 'mc') {
       show(bars);
@@ -262,17 +388,16 @@
     } else if (k === 'cloud') {
       show(cloud);
       groups = QuizNormalize.groupCloudWords(currentAnswers || {});
-      max = groups.reduce(function (m, x) { return Math.max(m, x.count); }, 1) || 1;
-      if (!groups.length) {
-        cloud.innerHTML = '<span style="color:var(--muted)">Words will gather here…</span>';
+      if (typeof SphinxWordCloud !== 'undefined' && SphinxWordCloud.render) {
+        SphinxWordCloud.render(cloud, groups, {
+          totalResponses: countAnswers(currentAnswers),
+          height: 340,
+          animate: true
+        });
       } else {
-        for (i = 0; i < groups.length; i++) {
-          g = groups[i];
-          var span = document.createElement('span');
-          span.style.fontSize = (0.95 + (g.count / max) * 1.45).toFixed(2) + 'rem';
-          span.textContent = g.label + (g.count > 1 ? ' ·' + g.count : '');
-          cloud.appendChild(span);
-        }
+        cloud.innerHTML = groups.length
+          ? groups.map(function (g) { return '<span>' + escapeHtml(g.label) + '</span>'; }).join(' ')
+          : '<span style="color:var(--muted)">Words will gather here…</span>';
       }
     } else if (k === 'open') {
       show(openCards);
@@ -315,20 +440,23 @@
     }
 
     var rb = $('revealBox');
+    var stLine, stCur;
     if (revealed && q) {
       show(rb);
+      stCur = questionRoomStats(qIndex, q);
+      stLine = '<br><span class="rq-stat">' + escapeHtml(stCur.label) + '</span>';
       if (k === 'mc') {
         var labels = (q.correct || []).map(function (ix) { return (q.options || [])[ix]; });
-        rb.innerHTML = '<strong>Correct:</strong> ' + escapeHtml(labels.join(', ')) +
+        rb.innerHTML = '<strong>Correct:</strong> ' + escapeHtml(labels.join(', ')) + stLine +
           (q.revealNote ? '<br><span class="hint">' + escapeHtml(q.revealNote) + '</span>' : '');
       } else if (k === 'short' || k === 'type') {
-        rb.innerHTML = '<strong>Accepted:</strong> ' + escapeHtml((q.accepted || []).join(', ')) +
+        rb.innerHTML = '<strong>Accepted:</strong> ' + escapeHtml((q.accepted || []).join(', ')) + stLine +
           (q.revealNote ? '<br><span class="hint">' + escapeHtml(q.revealNote) + '</span>' : '');
       } else if (k === 'cloud') {
-        rb.innerHTML = (q.modelAnswer ? '<strong>Notes:</strong> ' + escapeHtml(q.modelAnswer) : '<strong>Word cloud</strong> — no single correct answer.') +
+        rb.innerHTML = (q.modelAnswer ? '<strong>Notes:</strong> ' + escapeHtml(q.modelAnswer) : '<strong>Word cloud</strong> — no single correct answer.') + stLine +
           (q.revealNote ? '<br><span class="hint">' + escapeHtml(q.revealNote) + '</span>' : '');
       } else {
-        rb.innerHTML = '<strong>Model answer:</strong> ' + escapeHtml(q.modelAnswer || '') +
+        rb.innerHTML = '<strong>Model answer:</strong> ' + escapeHtml(q.modelAnswer || '') + stLine +
           (q.revealNote ? '<br><span class="hint">' + escapeHtml(q.revealNote) + '</span>' : '');
       }
     } else {
@@ -468,7 +596,10 @@
     if (!quiz || !currentMeta) return;
     var nextQ = Number(currentMeta.currentQ) + 1;
     if (nextQ >= quiz.questions.length) {
-      alert('That was the last question. Use End & wipe when finished.');
+      boardVisible = true;
+      renderLeaderboard(true);
+      if ($('reviewFromPodiumBtn')) show($('reviewFromPodiumBtn'));
+      alert('That was the last question. Open Review answers, then End & wipe when finished.');
       return;
     }
     var now = Date.now();
@@ -563,6 +694,9 @@
   $('nextBtn').addEventListener('click', onNext);
   $('revealBtn').addEventListener('click', onReveal);
   if ($('boardBtn')) $('boardBtn').addEventListener('click', onBoard);
+  if ($('reviewBtn')) $('reviewBtn').addEventListener('click', onReview);
+  if ($('reviewFromPodiumBtn')) $('reviewFromPodiumBtn').addEventListener('click', onReview);
+  if ($('closeReviewBtn')) $('closeReviewBtn').addEventListener('click', hideHostReview);
   $('endBtn').addEventListener('click', onEnd);
 
   if (!SphinxFirebase.isConfigured()) {
