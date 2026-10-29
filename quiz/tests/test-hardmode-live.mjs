@@ -1,6 +1,6 @@
 /**
- * Hard Mode live: after Q5, presenter gate chooses (a) or (b).
- * Branch (b): phone types Troy MC; screenshot phone. Branch (a): phone sees taps.
+ * Hard Mode live: after Judgement (Q5), presenter gate chooses (a) or (b).
+ * Branch (b): phone types post-gate MC in a single textarea; screenshot phone.
  */
 import { spawn } from 'child_process';
 import { setTimeout as sleep } from 'timers/promises';
@@ -54,7 +54,6 @@ try {
     const host = await browser.newPage();
     host.on('dialog', async (d) => d.accept());
     await host.goto(BASE + '/host.html', { waitUntil: 'networkidle' });
-    // Toggle must be gone
     if (await host.locator('#hardModeSetup').count()) throw new Error('hardModeSetup should be removed');
     if (await host.locator('#hardModeLive').count()) throw new Error('hardModeLive should be removed');
     await host.click('#startRoomBtn');
@@ -68,7 +67,6 @@ try {
     await phone.click('#joinBtn');
     await sleep(1200);
 
-    // Pre-gate: Q0 should be normal MC taps
     await phone.waitForSelector('#mcBox:visible', { timeout: 15000 });
     if (await phone.locator('#hardMcBox:visible').count()) {
       throw new Error('Q0 must be normal MC before gate');
@@ -76,7 +74,6 @@ try {
 
     await advanceToGate(host);
 
-    // Phone waits while oracle decides
     await phone.waitForFunction(() => {
       const w = document.getElementById('waitPanel');
       const t = document.getElementById('waitText');
@@ -90,12 +87,22 @@ try {
     await host.click('#hmGateChooseType'); // (b)
     await sleep(900);
 
-    // Next Q is Troy — Hard Mode text box on phone
-    await phone.waitForSelector('#hardMcBox:visible', { timeout: 15000 });
-    await phone.fill('#hardMcBox .hard-entries input', 'Hector, Priam, Hecuba, Cassandra, Andromache');
+    // Earth-born short — skip past it to Atreus MC
+    await phone.waitForSelector('#answer:visible', { timeout: 15000 });
+    await host.click('#nextBtn');
+    await sleep(900);
+
+    // Atreus — Hard Mode single textarea
+    await phone.waitForSelector('#hardMcBox textarea.hard-entry:visible', { timeout: 15000 });
+    if (await phone.locator('button.hard-add').count()) throw new Error('Add button must be gone');
+    const hint = await phone.textContent('#typeHint');
+    if (!/Name as many as you can/i.test(hint || '')) throw new Error('bad hint: ' + hint);
+    await phone.fill(
+      '#hardMcBox textarea.hard-entry',
+      'Agamemnon Menelaos Orestes Klytaimnestra Elektra'
+    );
     await phone.screenshot({ path: path.join(shotsDir, 'hm-gate-phone.png'), fullPage: true });
     console.log('SHOT hm-gate-phone.png');
-    // Also keep legacy shot name for continuity
     await phone.screenshot({ path: path.join(shotsDir, 'hard-mode-phone.png'), fullPage: true });
     await phone.click('#submitBtn');
     await sleep(1200);
@@ -103,7 +110,6 @@ try {
     console.log('STATUS_B', status);
     if (!/sent|watch/i.test(status || '')) throw new Error('submit failed: ' + status);
 
-    // Host hides option bars until reveal
     const barsHint = await host.textContent('#bars');
     if (!/Hard Mode|typing/i.test(barsHint || '')) {
       throw new Error('expected hard-mode hidden choices hint on host: ' + barsHint);
@@ -112,7 +118,7 @@ try {
     await host.click('#revealBtn');
     await sleep(800);
     const reveal = await host.textContent('#revealBox');
-    console.log('REVEAL_B', (reveal || '').replace(/\s+/g, ' ').slice(0, 120));
+    console.log('REVEAL_B', (reveal || '').replace(/\s+/g, ' ').slice(0, 140));
     if (!/1\/1 correct/i.test(reveal || '')) throw new Error('expected 1/1 correct in hard mode');
 
     await host.click('#endBtn');
@@ -141,15 +147,18 @@ try {
     await host.click('#hmGateChooseMc'); // (a)
     await sleep(900);
 
+    // skip Earth-born to Atreus
+    await phone.waitForSelector('#answer:visible', { timeout: 15000 });
+    await host.click('#nextBtn');
+    await sleep(900);
+
     await phone.waitForSelector('#mcBox:visible', { timeout: 15000 });
     if (await phone.locator('#hardMcBox:visible').count()) {
       throw new Error('branch (a) must show tap MC, not hard text box');
     }
-    await phone.click('.tap-option[data-index="0"]');
-    await phone.click('.tap-option[data-index="1"]');
-    await phone.click('.tap-option[data-index="3"]');
-    await phone.click('.tap-option[data-index="5"]');
-    await phone.click('.tap-option[data-index="6"]');
+    for (const ix of [0, 1, 3, 5, 6]) {
+      await phone.click(`.tap-option[data-index="${ix}"]`);
+    }
     await phone.click('#submitBtn');
     await sleep(1000);
     const status = await phone.textContent('#status');

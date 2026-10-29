@@ -1,7 +1,7 @@
 /**
- * Self-quiz E2E for lecture-review-1:
- * Q1 mc, Q2–Q4 short, Q5 Atreus multi, Hard Mode gate, Troy/Cadmus multi, open×2, cloud.
- * Branch (a): normal MC after gate. Branch (b): typed Hard Mode after gate.
+ * Self-quiz E2E — final order:
+ * Paris mc, Ixion, Chiron, Schliemann open, Judgement open,
+ * Hard Mode gate, Earth-born short, Atreus/Troy/Cadmus multi, cloud.
  */
 import { spawn } from 'child_process';
 import { setTimeout as sleep } from 'timers/promises';
@@ -37,30 +37,30 @@ async function answerMc(page, indices) {
   await checkAndNext(page);
 }
 
+/** Through Paris, Ixion, Chiron, Schliemann, Judgement — then gate. */
 async function answerThroughPreGate(page) {
-  // Q0 mc single Aphrodite — always normal MC (before gate)
-  await answerMc(page, [2]);
-  // Q1–Q3 short
+  await answerMc(page, [2]); // Paris
   await page.waitForSelector('#answer:visible');
   await page.fill('#answer', 'it was Ixion');
   await checkAndNext(page);
   await page.fill('#answer', 'Cheiron');
   await checkAndNext(page);
-  await page.fill('#answer', 'Cecrops');
-  await checkAndNext(page);
-  // Q4 Atreus multi — still normal MC
-  await answerMc(page, [0, 1, 3, 5, 6]);
-}
-
-async function finishAfterGateNormal(page) {
-  // Troy + Cadmus as normal MC
-  await answerMc(page, [0, 1, 3, 5, 6]);
-  await answerMc(page, [0, 1, 3, 5]);
   await page.waitForSelector('#answerLong:visible');
   await page.fill('#answerLong', 'excavated Troy');
   await checkAndNext(page);
   await page.fill('#answerLong', 'judgement of paris');
   await checkAndNext(page);
+}
+
+async function finishAfterGateNormal(page) {
+  // Earth-born short
+  await page.waitForSelector('#answer:visible');
+  await page.fill('#answer', 'Cecrops');
+  await checkAndNext(page);
+  // Atreus, Troy, Cadmus as normal MC
+  await answerMc(page, [0, 1, 3, 5, 6]); // Atreus
+  await answerMc(page, [0, 1, 3, 5, 6]); // Troy
+  await answerMc(page, [0, 2, 4, 6, 8, 10, 11, 12]); // Argives
   await page.waitForSelector('#cloudBox:visible');
   const inputs = page.locator('#cloudBox input');
   await inputs.nth(0).fill('wrath');
@@ -76,13 +76,11 @@ const page = await browser.newPage();
 try {
   await page.goto('http://127.0.0.1:8765/quiz/self.html?quiz=lecture-review-1', { waitUntil: 'networkidle' });
   await page.waitForSelector('#startBtn:not([disabled])', { timeout: 10000 });
-  // Hard Mode toggle must be gone
   assert.strictEqual(await page.locator('#hardModeSelf').count(), 0, 'hardModeSelf toggle must be removed');
   await page.click('#startBtn');
 
   await answerThroughPreGate(page);
 
-  // Gate: choose (a) Multiple choice
   await page.waitForSelector('#hmGateBox:visible');
   assert.ok(/Hard Mode/i.test(await page.textContent('#prompt')));
   await page.click('#hmGateChooseMc');
@@ -96,7 +94,7 @@ try {
 
   const review = await page.textContent('#selfReviewList');
   assert.ok(/Your answer/i.test(review), 'self review missing your answer');
-  assert.ok(/Ixion|Aphrodite|Cadmus|Troy|wrath/i.test(review), 'self review missing content');
+  assert.ok(/Ixion|Aphrodite|Argives|Troy|wrath|Nestor/i.test(review), 'self review missing content');
   assert.ok(!/Hard Mode\?/i.test(review), 'gate must not appear in review');
   assert.ok(/Correct|Incorrect|No mark|Partial/i.test(review), 'self review missing marks');
   await page.screenshot({ path: path.join(shotsDir, 'self-review.png'), fullPage: true });
@@ -106,7 +104,7 @@ try {
   server.kill('SIGTERM');
 }
 
-// ---- Hard Mode branch (b) ----
+// ---- Hard Mode branch (b) — single textarea ----
 {
   const browser2 = await playwright.chromium.launch({ headless: true });
   const page2 = await browser2.newPage();
@@ -120,16 +118,23 @@ try {
     await answerThroughPreGate(page2);
 
     await page2.waitForSelector('#hmGateBox:visible');
-    await page2.click('#hmGateChooseType'); // (b) Type the answer
+    await page2.click('#hmGateChooseType');
 
-    // Troy multi — Hard Mode text inputs
-    await page2.waitForSelector('#hardMcBox:visible');
-    const entries = page2.locator('#hardMcBox .hard-entries input');
-    await entries.nth(0).fill('Hector, Priam, Hecuba');
-    await page2.click('button.hard-add');
-    await page2.locator('#hardMcBox .hard-entries input').nth(1).fill('Cassandra');
-    await page2.click('button.hard-add');
-    await page2.locator('#hardMcBox .hard-entries input').nth(2).fill('Andromache');
+    // Earth-born still short
+    await page2.waitForSelector('#answer:visible');
+    await page2.fill('#answer', 'Cecrops');
+    await page2.click('#checkBtn');
+    await page2.waitForSelector('#feedback:not(.hidden)');
+    await page2.click('#nextBtn');
+
+    // Atreus — single hard textarea, space+comma mix
+    await page2.waitForSelector('#hardMcBox textarea.hard-entry:visible');
+    assert.strictEqual(await page2.locator('button.hard-add').count(), 0, 'no Add button');
+    assert.ok(/Name as many as you can/i.test(await page2.textContent('#typeHint')));
+    await page2.fill(
+      '#hardMcBox textarea.hard-entry',
+      'Klytaimnestra Elektra, Agamemnon Menelaos Orestes'
+    );
     await page2.click('#checkBtn');
     await page2.waitForSelector('#feedback:not(.hidden)');
     const fb = await page2.textContent('#feedback');
@@ -137,10 +142,21 @@ try {
     await page2.screenshot({ path: path.join(shotsDir, 'hard-mode-self.png'), fullPage: true });
     console.log('SHOT: hard-mode-self.png');
 
-    // Cadmus also hard
     await page2.click('#nextBtn');
-    await page2.waitForSelector('#hardMcBox:visible');
-    await page2.fill('#hardMcBox .hard-entries input', 'Pentheus, Agave, Semele, Oedipus');
+    // Troy
+    await page2.waitForSelector('#hardMcBox textarea.hard-entry:visible');
+    await page2.fill('#hardMcBox textarea.hard-entry', 'Hector, Priam, Hecuba, Cassandra, Andromache');
+    await page2.click('#checkBtn');
+    await page2.waitForSelector('#feedback:not(.hidden)');
+    assert.ok(/Correct/i.test(await page2.textContent('#feedback')));
+
+    await page2.click('#nextBtn');
+    // Argives — long list + multi-word alias
+    await page2.waitForSelector('#hardMcBox textarea.hard-entry:visible');
+    await page2.fill(
+      '#hardMcBox textarea.hard-entry',
+      'Achilles Nestor Agamemmnon Ulysses Diomede Menelaos Ajax the Great Patroklos'
+    );
     await page2.click('#checkBtn');
     await page2.waitForSelector('#feedback:not(.hidden)');
     assert.ok(/Correct/i.test(await page2.textContent('#feedback')));

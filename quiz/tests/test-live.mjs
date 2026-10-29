@@ -1,6 +1,6 @@
 /**
  * Live smoke: host + 3 phones against amne151-sphinx.
- * Order: mc, short×3, Atreus multi, Hard Mode gate, Troy/Cadmus multi, open×2, cloud.
+ * Order: Paris mc, Ixion, Chiron, Schliemann, Judgement, gate, Earth-born, Atreus, Troy, Argives, cloud.
  * Covers reveal stats, Review all (n/m correct), podium, wipe.
  */
 import { spawn } from 'child_process';
@@ -134,26 +134,31 @@ try {
   await answerShort(p3, 'Sisyphus');
 
   await hostNext(); // Q2 Chiron
-  await hostNext(); // Q3 Athens hero
-  await hostNext(); // Q4 Atreus
-  await answerMc(p1, [0, 1, 3, 5, 6]);
-  await answerMc(p2, [0]);
-  await answerMc(p3, [0, 1, 3, 5, 6]);
+  await hostNext(); // Q3 Schliemann open
+  await hostNext(); // Q4 Judgement open
   await hostNext(); // Hard Mode gate
   await host.waitForSelector('#hmGateBox:visible', { timeout: 8000 });
   await host.click('#hmGateChooseMc'); // (a) keep normal MC
   await sleep(700);
-  // now on Troy
+  // Earth-born
+  await answerShort(p1, 'Cecrops');
+  await answerShort(p2, 'Kekrops');
+  await answerShort(p3, 'Theseus');
+  await hostNext(); // Atreus
+  await answerMc(p1, [0, 1, 3, 5, 6]);
+  await answerMc(p2, [0]);
+  await answerMc(p3, [0, 1, 3, 5, 6]);
+  await hostNext(); // Troy
   await answerMc(p1, [0, 1, 3, 5, 6]);
   await answerMc(p2, [0, 1]);
   await answerMc(p3, [2, 4]); // wrong
-  await hostNext(); // Q6 Cadmus
-  await answerMc(p1, [0, 1, 3, 5]);
-  await answerMc(p2, [0, 2]);
-  await answerMc(p3, [0, 1, 3, 5]);
+  await hostNext(); // Argives vs Troy
+  await answerMc(p1, [0, 2, 4, 6, 8, 10, 11, 12]);
+  await answerMc(p2, [0, 1]); // partial / mixed
+  await answerMc(p3, [1, 3, 5]); // Trojans only — wrong
 
-  // Skip to cloud: next through open, open, cloud
-  for (let i = 0; i < 3; i++) await hostNext();
+  // next → cloud
+  await hostNext();
   L('CLOUD: ' + (await host.textContent('#prompt')).slice(0, 60));
   await answerCloud(p1, ['wrath', 'pride']);
   await answerCloud(p2, ['anger']);
@@ -171,7 +176,7 @@ try {
   const review = await host.textContent('#reviewList');
   L('REVIEW_SNIP: ' + (review || '').replace(/\s+/g, ' ').slice(0, 220));
   if (!/correct \(\d+%\)|response/i.test(review || '')) fail('review missing room stats');
-  if (!/Aphrodite|Cadmus|Ixion|Achilles/i.test(review || '')) fail('review missing questions');
+  if (!/Aphrodite|Argives|Danaans|Ixion|Achilles/i.test(review || '')) fail('review missing questions');
   // No student nicknames in review
   if (/Achilles|Hector/.test(review || '') && /pts/.test(review || '')) {
     // nicknames only ok if not as leaderboard - check no "pts"

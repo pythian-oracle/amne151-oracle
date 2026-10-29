@@ -51,6 +51,41 @@
       "revealNote": null
     },
     {
+      "id": "i4",
+      "section": "Iliad",
+      "type": "open",
+      "prompt": "Heinrich Schliemann is known for what?",
+      "accepted": [],
+      "modelAnswer": "Excavating Troy (Hisarlik) in the 1870s, and Mycenae (including the Mask of 'Agamemnon').",
+      "revealNote": null
+    },
+    {
+      "id": "i5",
+      "section": "Iliad",
+      "type": "open",
+      "prompt": "What is the Judgement of Paris?",
+      "accepted": [],
+      "modelAnswer": "Paris (Alexander) chooses the fairest among Hera, Athena and Aphrodite for the golden apple Eris threw; he picks Aphrodite, who promises him Helen — a cause of the Trojan War.",
+      "revealNote": null
+    },
+    {
+      "id": "hm-gate",
+      "section": "Mode",
+      "type": "hardModeGate",
+      "prompt": "Hard Mode?",
+      "choices": [
+        {
+          "id": "mc",
+          "label": "(a) Multiple choice"
+        },
+        {
+          "id": "type",
+          "label": "(b) Type the answer"
+        }
+      ],
+      "revealNote": null
+    },
+    {
       "id": "h3",
       "section": "Heroes",
       "type": "short",
@@ -102,23 +137,6 @@
       }
     },
     {
-      "id": "hm-gate",
-      "section": "Mode",
-      "type": "hardModeGate",
-      "prompt": "Hard Mode?",
-      "choices": [
-        {
-          "id": "mc",
-          "label": "(a) Multiple choice"
-        },
-        {
-          "id": "type",
-          "label": "(b) Type the answer"
-        }
-      ],
-      "revealNote": null
-    },
-    {
       "id": "i7",
       "section": "Iliad",
       "type": "mc",
@@ -161,54 +179,64 @@
       }
     },
     {
-      "id": "i6",
+      "id": "i8",
       "section": "Iliad",
       "type": "mc",
       "multi": true,
-      "prompt": "Which of these are members of the House of Cadmus?",
+      "prompt": "Heroes fighting against Troy (known in the Iliad as Argives, Greeks, or Danaans)",
       "options": [
-        "Pentheus",
-        "Agave",
-        "Theseus",
-        "Semele",
-        "Jason",
-        "Oedipus"
+        "Achilles",
+        "Hector",
+        "Nestor",
+        "Paris",
+        "Agamemnon",
+        "Aeneas",
+        "Odysseus",
+        "Priam",
+        "Diomedes",
+        "Sarpedon",
+        "Menelaus",
+        "Ajax",
+        "Patroclus"
       ],
       "correct": [
         0,
-        1,
-        3,
-        5
+        2,
+        4,
+        6,
+        8,
+        10,
+        11,
+        12
       ],
-      "revealNote": "Cadmus founded Thebes; his line includes Semele (mother of Dionysus), Agave and her son Pentheus, and through Labdacus and Laius, Oedipus. Theseus is Athenian; Jason is from Iolcus.",
+      "revealNote": "Hector, Paris, Aeneas, Priam, and Sarpedon fight for Troy (or as Trojan allies). The others are Achaean / Argive / Danaan heroes.",
       "aliases": {
-        "Agave": [
-          "Agaue"
+        "Achilles": [
+          "Akhilleus",
+          "Achilleus",
+          "Achillies"
         ],
-        "Oedipus": [
-          "Oidipous",
-          "Oedipous",
-          "Oidipus"
+        "Odysseus": [
+          "Ulysses",
+          "Odyseus"
+        ],
+        "Ajax": [
+          "Aias",
+          "Ajax the Great"
+        ],
+        "Patroclus": [
+          "Patroklos"
+        ],
+        "Diomedes": [
+          "Diomede"
+        ],
+        "Agamemnon": [
+          "Agamemmnon"
+        ],
+        "Menelaus": [
+          "Menelaos"
         ]
       }
-    },
-    {
-      "id": "i4",
-      "section": "Iliad",
-      "type": "open",
-      "prompt": "Heinrich Schliemann is known for what?",
-      "accepted": [],
-      "modelAnswer": "Excavating Troy (Hisarlik) in the 1870s, and Mycenae (including the Mask of 'Agamemnon').",
-      "revealNote": null
-    },
-    {
-      "id": "i5",
-      "section": "Iliad",
-      "type": "open",
-      "prompt": "What is the Judgement of Paris?",
-      "accepted": [],
-      "modelAnswer": "Paris (Alexander) chooses the fairest among Hera, Athena and Aphrodite for the golden apple Eris threw; he picks Aphrodite, who promises him Helen — a cause of the Trojan War.",
-      "revealNote": null
     },
     {
       "id": "i0c",

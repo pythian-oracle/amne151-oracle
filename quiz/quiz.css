@@ -147,7 +147,5 @@ textarea{min-height:5.5rem;resize:vertical}
 .hm-gate-actions{display:flex;flex-wrap:wrap;gap:.75rem}
 .hm-gate-actions .btn.big{min-width:12rem;padding:.85rem 1.1rem;font-size:1.05rem}
 .hard-mc{display:flex;flex-direction:column;gap:.45rem;margin:.4rem 0}
-.hard-mc .hard-entries{display:flex;flex-direction:column;gap:.4rem}
-.hard-mc input[type=text]{width:100%;font:inherit;padding:.65rem .75rem;border:1.5px solid #8C7F67;border-radius:4px;background:#fff}
-.hard-mc .hard-add{align-self:flex-start}
+.hard-mc textarea.hard-entry,.hard-mc input.hard-entry{width:100%;font:inherit;padding:.65rem .75rem;border:1.5px solid #8C7F67;border-radius:4px;background:#fff;resize:vertical;min-height:2.6rem}
 .hard-mc .hard-count-hint{color:var(--muted);font-size:.92rem;margin:0}

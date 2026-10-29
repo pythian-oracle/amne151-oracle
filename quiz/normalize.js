@@ -436,13 +436,84 @@
     Athena: ['Athene', 'Athēna']
   };
 
-  function parseHardModeEntries(raw) {
+  /**
+   * Split Hard Mode typed text into answer tokens.
+   * Splits on commas, semicolons, newlines, pipes, and whitespace.
+   * When phraseHints are provided (option labels / aliases), greedily match
+   * multi-word phrases before splitting the remainder on spaces so names like
+   * "House of Atreus" are kept intact. Dedupes case-insensitively, first wins.
+   */
+  function parseHardModeEntries(raw, phraseHints) {
     var s = String(raw || '').replace(/\r/g, '\n');
-    var parts = s.split(/[\n,;|/]+/);
-    var out = [], i, t;
-    for (i = 0; i < parts.length; i++) {
-      t = String(parts[i] || '').replace(/\s+/g, ' ').trim();
-      if (t) out.push(t);
+    var chunks = s.split(/[\n,;|/]+/);
+    var phrases = [];
+    var seenPhrase = Object.create(null);
+    var i, j, chunk, rest, matched, best, blen, pl, lower, key, out, seen;
+    function addPhrase(x) {
+      var t = String(x || '').replace(/\s+/g, ' ').trim();
+      var k;
+      if (!t || t.indexOf(' ') === -1) return;
+      k = t.toLowerCase();
+      if (seenPhrase[k]) return;
+      seenPhrase[k] = true;
+      phrases.push(t);
+    }
+    if (phraseHints && phraseHints.length) {
+      for (i = 0; i < phraseHints.length; i++) addPhrase(phraseHints[i]);
+    }
+    phrases.sort(function (a, b) { return b.length - a.length; });
+
+    out = [];
+    seen = Object.create(null);
+    function pushToken(t) {
+      var k, cleaned;
+      cleaned = String(t || '').replace(/\s+/g, ' ').trim();
+      if (!cleaned) return;
+      k = cleaned.toLowerCase();
+      if (seen[k]) return;
+      seen[k] = true;
+      out.push(cleaned);
+    }
+
+    for (i = 0; i < chunks.length; i++) {
+      chunk = String(chunks[i] || '').replace(/\s+/g, ' ').trim();
+      if (!chunk) continue;
+      rest = chunk;
+      while (rest) {
+        matched = null;
+        best = null;
+        blen = 0;
+        lower = rest.toLowerCase();
+        for (j = 0; j < phrases.length; j++) {
+          pl = phrases[j].toLowerCase();
+          if (pl.length <= blen) continue;
+          if (lower === pl || lower.indexOf(pl + ' ') === 0) {
+            best = phrases[j];
+            blen = pl.length;
+          }
+        }
+        if (best) {
+          pushToken(best);
+          rest = rest.slice(best.length).replace(/^\s+/, '');
+          continue;
+        }
+        // No multi-word phrase at start — take next whitespace-separated token
+        matched = rest.match(/^(\S+)(?:\s+(.*))?$/);
+        if (!matched) break;
+        pushToken(matched[1]);
+        rest = matched[2] || '';
+      }
+    }
+    return out;
+  }
+
+  /** All option labels + aliases for Hard Mode phrase-aware splitting. */
+  function hardModePhraseHints(q) {
+    var opts = (q && q.options) || [];
+    var out = [], i, aliases, a;
+    for (i = 0; i < opts.length; i++) {
+      aliases = aliasesForOption(q, i);
+      for (a = 0; a < aliases.length; a++) out.push(aliases[a]);
     }
     return out;
   }
@@ -503,7 +574,9 @@
    * Returns { indices, unmatched, choiceStr, raw, labels }.
    */
   function mapHardModeAnswer(rawOrList, q) {
-    var entries = Array.isArray(rawOrList) ? rawOrList : parseHardModeEntries(rawOrList);
+    var entries = Array.isArray(rawOrList)
+      ? rawOrList
+      : parseHardModeEntries(rawOrList, hardModePhraseHints(q));
     var opts = (q && q.options) || [];
     var used = Object.create(null);
     var indices = [];
@@ -569,6 +642,7 @@
     sanitizeNick: sanitizeNick,
     uniquifyNick: uniquifyNick,
     parseHardModeEntries: parseHardModeEntries,
+    hardModePhraseHints: hardModePhraseHints,
     aliasesForOption: aliasesForOption,
     matchOptionIndex: matchOptionIndex,
     mapHardModeAnswer: mapHardModeAnswer,

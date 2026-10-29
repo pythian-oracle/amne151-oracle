@@ -53,10 +53,15 @@ const kinds = quiz.questions.map((q) => N.questionKind(q));
 assert.ok(kinds.includes('mc') && kinds.includes('cloud') && kinds.includes('open') && kinds.includes('short'));
 assert.ok(kinds.includes('hardModeGate'));
 const gateIdx = kinds.indexOf('hardModeGate');
-assert.strictEqual(gateIdx, 5, 'gate should sit after Q5 (Atreus)');
+assert.strictEqual(gateIdx, 5, 'gate after Judgement (before Earth-born)');
+assert.deepStrictEqual(
+  quiz.questions.map((q) => q.id),
+  ['i0a', 'h1', 'h2', 'i4', 'i5', 'hm-gate', 'h3', 'i0b', 'i7', 'i8', 'i0c']
+);
 assert.strictEqual(N.displayQuestionNumber(quiz.questions, 4), 5);
 assert.strictEqual(N.displayQuestionNumber(quiz.questions, 5), null);
 assert.strictEqual(N.displayQuestionNumber(quiz.questions, 6), 6);
+assert.strictEqual(N.displayQuestionNumber(quiz.questions, 7), 7);
 
 console.log('normalize + quiz JSON: OK');
 
@@ -72,3 +77,42 @@ assert(hm.exact, 'hard mode Atreus aliases should exact-match');
 const hm2 = N.gradeHardModeMc('Aphrodite', { type: 'mc', multi: false, options: ['Hera', 'Athena', 'Aphrodite'], correct: [2] });
 assert(hm2.exact, 'hard mode single Aphrodite');
 console.log('hard-mode normalize: OK');
+
+// parseHardModeEntries: commas, spaces, mixed, dedupe, multi-word phrases
+function expectEntries(raw, phrases, expected) {
+  const got = N.parseHardModeEntries(raw, phrases);
+  assert.strictEqual(JSON.stringify([...got]), JSON.stringify(expected),
+    'parseHardModeEntries(' + JSON.stringify(raw) + ') => ' + JSON.stringify([...got]));
+}
+const phrases = ['House of Atreus', 'House of Cadmus', 'Mask of Agamemnon', 'Agamemnon', 'Hector'];
+expectEntries('Hector, Priam, Hecuba', phrases, ['Hector', 'Priam', 'Hecuba']);
+expectEntries('Hector Priam Hecuba', phrases, ['Hector', 'Priam', 'Hecuba']);
+expectEntries('Hector, Priam Hecuba; Cassandra\nAndromache', phrases, ['Hector', 'Priam', 'Hecuba', 'Cassandra', 'Andromache']);
+expectEntries('Hector hector PRIAM', phrases, ['Hector', 'PRIAM']);
+expectEntries('House of Atreus Hector House of Cadmus', phrases, ['House of Atreus', 'Hector', 'House of Cadmus']);
+expectEntries('Mask of Agamemnon, Hector', phrases, ['Mask of Agamemnon', 'Hector']);
+// Via mapHardModeAnswer with a multi-word alias on an option
+const mwQ = {
+  type: 'mc', multi: true,
+  options: ['Agamemnon', 'Hector', 'Priam'],
+  correct: [0, 1],
+  aliases: { Agamemnon: ['Mask of Agamemnon'] }
+};
+const mw = N.gradeHardModeMc('Mask of Agamemnon Hector', mwQ);
+assert(mw.exact, 'multi-word alias kept intact when splitting on spaces: ' + JSON.stringify(mw.mapped));
+console.log('hard-mode parse entries: OK');
+
+// Argives MC — long correct list: partial credit + multi-word alias
+const argQ = quiz.questions.find((q) => q.id === 'i8');
+assert.ok(argQ && argQ.multi && (argQ.correct || []).length === 8);
+const argPartial = N.gradeHardModeMc('Achilles, Hector, Nestor', argQ);
+assert.ok(argPartial.partial && !argPartial.exact, 'partial when some correct + one Trojan');
+assert.strictEqual(argPartial.hit, 2);
+const argExact = N.gradeHardModeMc(
+  'Achilles Nestor Agamemnon Odysseus Diomedes Menelaos Ajax the Great Patroklos',
+  argQ
+);
+assert(argExact.exact, 'exact with aliases + multi-word Ajax the Great: ' + JSON.stringify(argExact.mapped));
+const argScore = N.scoreForAnswer(argQ, { raw: 'Achilles, Nestor', hardMode: true, at: 1000 }, 1000);
+assert.ok(argScore > 0 && argScore < 1500, 'partial hard-mode score between 0 and full: ' + argScore);
+console.log('argives hard-mode partial/exact: OK');

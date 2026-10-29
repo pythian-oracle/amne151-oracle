@@ -89,64 +89,39 @@
     return out;
   }
 
-  function hardNeedCount(q) {
-    if (q.multi) return (q.correct || []).length || 1;
-    return 1;
-  }
-
   function renderHardMc(q) {
     var box = $('hardMcBox');
-    var need = hardNeedCount(q);
     var multi = !!q.multi;
-    var wrap, inp, addBtn, hint;
+    var ta, hint;
     box.innerHTML = '';
     hint = document.createElement('p');
     hint.className = 'hard-count-hint';
     hint.textContent = multi
-      ? ('Name all ' + need + ' — commas or add another box.')
-      : 'Type the answer (spelling variants OK).';
+      ? 'Name as many as you can — separate with commas or spaces.'
+      : 'Type your answer (spelling variants OK).';
     box.appendChild(hint);
-    wrap = document.createElement('div');
-    wrap.className = 'hard-entries';
-    box.appendChild(wrap);
-    function addRow(val) {
-      inp = document.createElement('input');
-      inp.type = 'text';
-      inp.autocomplete = 'off';
-      inp.autocapitalize = 'words';
-      inp.maxLength = 60;
-      inp.placeholder = multi ? 'Name' : 'Answer';
-      if (val) inp.value = val;
-      wrap.appendChild(inp);
-      return inp;
-    }
-    addRow('');
-    if (multi) {
-      addBtn = document.createElement('button');
-      addBtn.type = 'button';
-      addBtn.className = 'btn hard-add';
-      addBtn.textContent = 'Add another';
-      addBtn.addEventListener('click', function () { addRow('').focus(); });
-      box.appendChild(addBtn);
-    }
+    ta = document.createElement('textarea');
+    ta.className = 'hard-entry';
+    ta.rows = multi ? 3 : 2;
+    ta.autocomplete = 'off';
+    ta.autocapitalize = 'words';
+    ta.maxLength = 280;
+    ta.placeholder = multi ? 'e.g. Hector, Priam, Hecuba' : 'Answer';
+    box.appendChild(ta);
     show(box);
-    var first = wrap.querySelector('input');
-    if (first) first.focus();
+    ta.focus();
   }
 
-  function hardMcEntries() {
+  function hardMcEntries(q) {
     var box = $('hardMcBox');
+    var ta, raw, hints;
     if (!box) return [];
-    var inputs = box.querySelectorAll('.hard-entries input');
-    var parts = [], i, raw, flat = [];
-    for (i = 0; i < inputs.length; i++) {
-      raw = String(inputs[i].value || '').trim();
-      if (raw) parts.push(raw);
-    }
-    for (i = 0; i < parts.length; i++) {
-      QuizNormalize.parseHardModeEntries(parts[i]).forEach(function (x) { flat.push(x); });
-    }
-    return flat;
+    ta = box.querySelector('textarea.hard-entry, input.hard-entry');
+    if (!ta) return [];
+    raw = String(ta.value || '').trim();
+    if (!raw) return [];
+    hints = QuizNormalize.hardModePhraseHints ? QuizNormalize.hardModePhraseHints(q || {}) : [];
+    return QuizNormalize.parseHardModeEntries(raw, hints);
   }
 
   function renderHardModeGate(q) {
@@ -249,8 +224,8 @@
     } else if (k === 'mc') {
       if (hardMode) {
         $('typeHint').textContent = q.multi
-          ? ('Hard Mode · name all ' + hardNeedCount(q) + '.')
-          : 'Hard Mode · type the answer.';
+          ? 'Name as many as you can'
+          : 'Type your answer';
         renderHardMc(q);
       } else {
         $('typeHint').textContent = q.multi
@@ -292,7 +267,7 @@
     if (k === 'mc') {
       opts = q.options || [];
       if (hardMode) {
-        var entries = hardMcEntries();
+        var entries = hardMcEntries(q);
         if (!entries.length) {
           feedback.className = 'feedback incorrect';
           feedback.innerHTML = '<span class="tag">Empty.</span> Type at least one answer.';
@@ -340,7 +315,7 @@
       feedback.innerHTML = html;
       show(feedback);
       Array.prototype.forEach.call(mcBox.querySelectorAll('input'), function (inp) { inp.disabled = true; });
-      Array.prototype.forEach.call(($('hardMcBox') || document).querySelectorAll('input'), function (inp) { inp.disabled = true; });
+      Array.prototype.forEach.call(($('hardMcBox') || document).querySelectorAll('input, textarea'), function (inp) { inp.disabled = true; });
       pushHistory({
         kind: k, prompt: q.prompt, section: q.section || '',
         yourText: yourText, mark: mark, correctHtml: correctHtml, note: note

@@ -185,71 +185,39 @@
     return out;
   }
 
-  function hardNeedCount(q) {
-    if (q.multi) return (q.correct || []).length || 1;
-    return 1;
-  }
-
   function renderHardMc(q) {
     var box = $('hardMcBox');
-    var need = hardNeedCount(q);
     var multi = !!q.multi;
-    var wrap, row, inp, addBtn, hint, i;
+    var ta, hint;
     box.innerHTML = '';
     hint = document.createElement('p');
     hint.className = 'hard-count-hint';
     hint.textContent = multi
-      ? ('Name all ' + need + ' — separate with commas or add another box.')
-      : 'Type the answer (spelling variants OK).';
+      ? 'Name as many as you can — separate with commas or spaces.'
+      : 'Type your answer (spelling variants OK).';
     box.appendChild(hint);
-    wrap = document.createElement('div');
-    wrap.className = 'hard-entries';
-    box.appendChild(wrap);
-    function addRow(val) {
-      inp = document.createElement('input');
-      inp.type = 'text';
-      inp.autocomplete = 'off';
-      inp.autocapitalize = 'words';
-      inp.maxLength = 60;
-      inp.placeholder = multi ? 'Name' : 'Answer';
-      if (val) inp.value = val;
-      wrap.appendChild(inp);
-      return inp;
-    }
-    addRow('');
-    if (multi) {
-      addBtn = document.createElement('button');
-      addBtn.type = 'button';
-      addBtn.className = 'btn hard-add';
-      addBtn.textContent = 'Add another';
-      addBtn.addEventListener('click', function () {
-        var n = addRow('');
-        n.focus();
-      });
-      box.appendChild(addBtn);
-    }
+    ta = document.createElement('textarea');
+    ta.className = 'hard-entry';
+    ta.rows = multi ? 3 : 2;
+    ta.autocomplete = 'off';
+    ta.autocapitalize = 'words';
+    ta.maxLength = 280;
+    ta.placeholder = multi ? 'e.g. Hector, Priam, Hecuba' : 'Answer';
+    box.appendChild(ta);
     show(box);
-    var first = wrap.querySelector('input');
-    if (first) first.focus();
+    ta.focus();
   }
 
-  function hardMcEntries() {
+  function hardMcEntries(q) {
     var box = $('hardMcBox');
+    var ta, raw, hints;
     if (!box) return [];
-    var inputs = box.querySelectorAll('.hard-entries input');
-    var parts = [], i, t;
-    if (inputs.length) {
-      for (i = 0; i < inputs.length; i++) {
-        t = String(inputs[i].value || '').trim();
-        if (t) parts.push(t);
-      }
-    }
-    // Also split commas inside each field
-    var flat = [];
-    for (i = 0; i < parts.length; i++) {
-      QuizNormalize.parseHardModeEntries(parts[i]).forEach(function (x) { flat.push(x); });
-    }
-    return flat;
+    ta = box.querySelector('textarea.hard-entry, input.hard-entry');
+    if (!ta) return [];
+    raw = String(ta.value || '').trim();
+    if (!raw) return [];
+    hints = QuizNormalize.hardModePhraseHints ? QuizNormalize.hardModePhraseHints(q || {}) : [];
+    return QuizNormalize.parseHardModeEntries(raw, hints);
   }
 
   function renderCloud(q) {
@@ -305,8 +273,8 @@
       } else if (k === 'mc') {
         if (hardMode) {
           $('typeHint').textContent = q.multi
-            ? ('Hard Mode · name all ' + hardNeedCount(q) + '.')
-            : 'Hard Mode · type the answer.';
+            ? 'Name as many as you can'
+            : 'Type your answer';
           renderHardMc(q);
         } else {
           $('typeHint').textContent = q.multi ? 'Tap all that apply.' : 'Tap one option.';
@@ -443,7 +411,7 @@
     var raw, norm, sel, words, i, wnorm, wordsObj, labels, choiceStr;
     if (k === 'mc') {
       if (hardMode) {
-        var entries = hardMcEntries();
+        var entries = hardMcEntries(q);
         if (!entries.length) return { error: 'Type at least one answer.' };
         var mapped = QuizNormalize.mapHardModeAnswer(entries, q);
         if (!mapped.matched.length && mapped.unmatched.length) {
