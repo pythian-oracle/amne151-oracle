@@ -2,14 +2,65 @@
   "id": "lecture-review-1",
   "title": "Heroes & Iliad — lecture review",
   "course": "UBC AMNE 151",
-  "sections": ["201", "203", "204"],
+  "sections": [
+    "201",
+    "203",
+    "204"
+  ],
   "questions": [
+    {
+      "id": "i0a",
+      "section": "Iliad",
+      "type": "mc",
+      "multi": false,
+      "prompt": "Which goddess did Paris choose?",
+      "options": [
+        "Hera",
+        "Athena",
+        "Aphrodite"
+      ],
+      "correct": [
+        2
+      ],
+      "revealNote": null
+    },
+    {
+      "id": "i0b",
+      "section": "Iliad",
+      "type": "mc",
+      "multi": true,
+      "prompt": "Which of these are members of the House of Atreus?",
+      "options": [
+        "Agamemnon",
+        "Menelaus",
+        "Hector",
+        "Orestes",
+        "Priam"
+      ],
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "revealNote": "Hector and Priam are Trojan."
+    },
+    {
+      "id": "i0c",
+      "section": "Iliad",
+      "type": "cloud",
+      "prompt": "One word that describes Achilles in Iliad 1",
+      "max": 3,
+      "modelAnswer": "Possible themes: wrath, honour, pride, anger, glory…",
+      "revealNote": null
+    },
     {
       "id": "h1",
       "section": "Heroes",
       "type": "short",
       "prompt": "Whose punishment was being tied to a wheel for eternity?",
-      "accepted": ["Ixion"],
+      "accepted": [
+        "Ixion"
+      ],
       "revealNote": null
     },
     {
@@ -17,7 +68,10 @@
       "section": "Heroes",
       "type": "short",
       "prompt": "Who is the civilized centaur, teacher and healer?",
-      "accepted": ["Chiron", "Cheiron"],
+      "accepted": [
+        "Chiron",
+        "Cheiron"
+      ],
       "revealNote": null
     },
     {
@@ -25,7 +79,13 @@
       "section": "Heroes",
       "type": "short",
       "prompt": "Name an earth-born ancestor-hero of Athens.",
-      "accepted": ["Cecrops", "Kekrops", "Erechtheus", "Erichthonius", "Erichthonios"],
+      "accepted": [
+        "Cecrops",
+        "Kekrops",
+        "Erechtheus",
+        "Erichthonius",
+        "Erichthonios"
+      ],
       "revealNote": null
     },
     {
@@ -51,7 +111,19 @@
       "section": "Iliad",
       "type": "short",
       "prompt": "Name one member of the House of Atreus, other than Atreus.",
-      "accepted": ["Agamemnon", "Menelaus", "Thyestes", "Aegisthus", "Clytemnestra", "Helen", "Orestes", "Electra", "Iphigenia", "Pelops", "Tantalus"],
+      "accepted": [
+        "Agamemnon",
+        "Menelaus",
+        "Thyestes",
+        "Aegisthus",
+        "Clytemnestra",
+        "Helen",
+        "Orestes",
+        "Electra",
+        "Iphigenia",
+        "Pelops",
+        "Tantalus"
+      ],
       "revealNote": null
     },
     {
@@ -59,37 +131,18 @@
       "section": "Iliad",
       "type": "short",
       "prompt": "Name one member of the royal house of Troy.",
-      "accepted": ["Hector", "Priam", "Hecuba", "Andromache", "Paris", "Alexander", "Cassandra", "Astyanax", "Helen"],
+      "accepted": [
+        "Hector",
+        "Priam",
+        "Hecuba",
+        "Andromache",
+        "Paris",
+        "Alexander",
+        "Cassandra",
+        "Astyanax",
+        "Helen"
+      ],
       "revealNote": "Paris and Alexander are the same prince."
-    },
-    {
-      "id": "demo-mc-single",
-      "section": "Demo",
-      "type": "mc",
-      "multi": false,
-      "prompt": "[Demo] Which goddess did Paris choose?",
-      "options": ["Hera", "Athena", "Aphrodite"],
-      "correct": [2],
-      "revealNote": "Demo multiple-choice (single select)."
-    },
-    {
-      "id": "demo-mc-multi",
-      "section": "Demo",
-      "type": "mc",
-      "multi": true,
-      "prompt": "[Demo] Which of these are members of the House of Atreus?",
-      "options": ["Agamemnon", "Menelaus", "Hector", "Orestes", "Priam"],
-      "correct": [0, 1, 3],
-      "revealNote": "Demo multiple-choice (multi-select). Hector and Priam are Trojan."
-    },
-    {
-      "id": "demo-cloud",
-      "section": "Demo",
-      "type": "cloud",
-      "prompt": "[Demo] One word that describes Achilles in Iliad 1",
-      "max": 3,
-      "modelAnswer": "Possible themes: wrath, honour, pride, anger, glory…",
-      "revealNote": "Demo word-cloud question — no single correct answer."
     }
   ]
 }
