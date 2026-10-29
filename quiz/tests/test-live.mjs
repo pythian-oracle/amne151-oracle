@@ -1,7 +1,7 @@
 /**
  * Live smoke: host + 3 phones against amne151-sphinx.
  * Order: Paris mc, Ixion, Chiron, Schliemann, Judgement, gate, Earth-born, Atreus, Troy, Argives, cloud.
- * Covers reveal stats, Review all (n/m correct), podium, wipe.
+ * Covers reveal stats, Review all (n/m correct), phone review mirror, podium, wipe.
  */
 import { spawn } from 'child_process';
 import { setTimeout as sleep } from 'timers/promises';
@@ -196,18 +196,56 @@ try {
   await host.screenshot({ path: path.join(shotsDir, 'host-review.png'), fullPage: true });
   L('SHOT: host-review.png');
 
-  // Scores on phones
+  // Phones should mirror host answer review via meta.review
+  for (const p of [p1, p2, p3]) {
+    await waitVisible(p.page, '#reviewPanel', 12000);
+    const phoneReview = await p.page.textContent('#reviewList');
+    L(p.name + '_REVIEW_SNIP: ' + (phoneReview || '').replace(/\s+/g, ' ').slice(0, 180));
+    if (!/Aphrodite|Argives|Danaans|Ixion/i.test(phoneReview || '')) {
+      fail(p.name + ' phone review missing questions');
+    }
+    if (!/Your answer:/i.test(phoneReview || '')) {
+      fail(p.name + ' phone review missing own answer lines');
+    }
+    if (!/wrath|anger|rage|pride/i.test(phoneReview || '')) {
+      fail(p.name + ' phone review missing cloud words (or see-the-screen fallback)');
+    }
+    // Gate must not appear as a review item
+    if (/Take it easy|Hard Mode\?/i.test(phoneReview || '')) {
+      fail(p.name + ' phone review should skip hardModeGate');
+    }
+  }
+  await p1.page.screenshot({ path: path.join(shotsDir, 'phone-review.png'), fullPage: true });
+  L('SHOT: phone-review.png');
+
+  // Scores on phones (visible on review panel too)
   for (const p of [p1, p2, p3]) {
     const s = await p.page.evaluate(() => {
-      for (const id of ['myScore', 'waitScore', 'endScore']) {
+      for (const id of ['reviewScore', 'myScore', 'waitScore', 'endScore']) {
         const el = document.getElementById(id);
-        if (el && !el.classList.contains('hidden')) return el.textContent.trim();
+        if (el && !el.closest('.hidden') && el.offsetParent !== null) return el.textContent.trim();
+        if (el && id === 'reviewScore') {
+          const panel = document.getElementById('reviewPanel');
+          if (panel && !panel.classList.contains('hidden')) return el.textContent.trim();
+        }
       }
       return '';
     });
     L(p.name + '_SCORE: ' + s);
     if (!/Score\s+\d+/i.test(s)) fail(p.name + ' missing score');
   }
+
+  // Closing host review should hide phone review
+  await host.click('#closeReviewBtn');
+  await sleep(1200);
+  for (const p of [p1, p2, p3]) {
+    const still = await p.page.evaluate(() => {
+      const el = document.getElementById('reviewPanel');
+      return el && !el.classList.contains('hidden');
+    });
+    if (still) fail(p.name + ' still showing review after host closed it');
+  }
+  L('PHONE_REVIEW_CLEARED: ok');
 
   await host.click('#endBtn');
   await sleep(2200);

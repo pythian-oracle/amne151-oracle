@@ -91,7 +91,7 @@
     var text = me
       ? ('Score ' + me.score + ' · rank ' + me.rank + '/' + board.length)
       : 'Score 0';
-    ['myScore', 'waitScore', 'endScore'].forEach(function (id) {
+    ['myScore', 'waitScore', 'endScore', 'reviewScore'].forEach(function (id) {
       var el = $(id);
       if (el) el.textContent = text + (myNick ? ' · ' + myNick : '');
     });
@@ -253,6 +253,7 @@
     hide($('joinPanel'));
     hide($('waitPanel'));
     hide($('endedPanel'));
+    hidePlayerReview();
     show($('answerPanel'));
     $('progress').textContent = (disp != null && total)
       ? ('Question ' + disp + ' of ' + total)
@@ -298,10 +299,171 @@
     refreshMyScore();
   }
 
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+    });
+  }
+
+  function formatCloudWordList(words) {
+    var parts = [], i, w, c, lab;
+    for (i = 0; i < (words || []).length; i++) {
+      w = words[i];
+      if (!w || !w.label) continue;
+      c = Number(w.count) || 1;
+      lab = escapeHtml(w.label);
+      parts.push(c > 1 ? (lab + ' ×' + c) : lab);
+    }
+    return parts.join(', ');
+  }
+
+  function answersForQuestion(qIndex) {
+    var map = answersTree[qIndex] || answersTree[String(qIndex)] || {};
+    return map || {};
+  }
+
+  function myAnswerFor(qIndex) {
+    var map = answersForQuestion(qIndex);
+    if (!myUid || !map) return null;
+    return map[myUid] || null;
+  }
+
+  function describeOwnAnswer(q, ans) {
+    var k = kind(q);
+    var g, sel, opts, labels, words, key, parts;
+    if (!ans) return { text: '—', mark: 'none' };
+    if (k === 'mc') {
+      opts = q.options || [];
+      if (ans.hardMode && ans.raw && QuizNormalize.gradeHardModeMc) {
+        g = QuizNormalize.gradeHardModeMc(ans.raw, q);
+        return {
+          text: String(ans.raw),
+          mark: g.exact ? 'correct' : (g.partial ? 'partial' : 'incorrect')
+        };
+      }
+      sel = ans.choices
+        ? QuizNormalize.sortedUniqueNums(ans.choices)
+        : QuizNormalize.indicesFromChoiceStr(ans.choiceStr);
+      g = QuizNormalize.gradeMc(sel, q.correct || [], !!q.multi);
+      labels = sel.map(function (ix) { return opts[ix] != null ? opts[ix] : String(ix); });
+      return {
+        text: labels.length ? labels.join(', ') : '—',
+        mark: g.exact ? 'correct' : (g.partial ? 'partial' : 'incorrect')
+      };
+    }
+    if (k === 'short' || k === 'type') {
+      g = QuizNormalize.matchesAccepted(ans.raw || '', q.accepted || []);
+      return { text: String(ans.raw || '—'), mark: g.ok ? 'correct' : 'incorrect' };
+    }
+    if (k === 'cloud') {
+      parts = [];
+      if (ans.words) {
+        for (key in ans.words) {
+          if (Object.prototype.hasOwnProperty.call(ans.words, key) && ans.words[key] && ans.words[key].raw) {
+            parts.push(ans.words[key].raw);
+          }
+        }
+      }
+      if (!parts.length && ans.raw) parts = String(ans.raw).split(/,\s*/);
+      return { text: parts.length ? parts.join(' · ') : '—', mark: 'none' };
+    }
+    if (k === 'open') {
+      return { text: String(ans.raw || '—'), mark: 'none' };
+    }
+    return { text: String(ans.raw || '—'), mark: 'none' };
+  }
+
+  function markLabel(mark) {
+    if (mark === 'correct') return '<mark class="ok">Correct</mark>';
+    if (mark === 'partial') return '<mark class="partial">Partial</mark>';
+    if (mark === 'incorrect') return '<mark class="bad">Incorrect</mark>';
+    return '<mark class="neutral">No mark</mark>';
+  }
+
+  function renderPlayerReview() {
+    var list = $('reviewList');
+    var qs, i, q, k, html, disp, accepted, opts, cor, j, words, groups, own, map;
+    if (!list || !quiz) return;
+    qs = quiz.questions || [];
+    html = '';
+    for (i = 0; i < qs.length; i++) {
+      q = qs[i];
+      k = kind(q);
+      if (k === 'hardModeGate') continue;
+      disp = QuizNormalize.displayQuestionNumber
+        ? QuizNormalize.displayQuestionNumber(qs, i)
+        : (i + 1);
+      own = describeOwnAnswer(q, myAnswerFor(i));
+      html += '<article class="review-item">';
+      html += '<p class="rq-num">Question ' + disp +
+        (q.section ? ' · ' + escapeHtml(q.section) : '') +
+        ' · ' + markLabel(own.mark) + '</p>';
+      html += '<p class="rq-prompt">' + escapeHtml(q.prompt || '') + '</p>';
+      html += '<p class="rq-you"><strong>Your answer:</strong> ' + escapeHtml(own.text) + '</p>';
+      if (k === 'short' || k === 'type') {
+        accepted = q.accepted || [];
+        if (accepted.length) {
+          html += '<p class="rq-correct rq-primary">' + escapeHtml(accepted[0]) + '</p>';
+          if (accepted.length > 1) {
+            html += '<p class="rq-variants">Also accepted: ' + escapeHtml(accepted.slice(1).join(', ')) + '</p>';
+          }
+        }
+      } else if (k === 'mc') {
+        opts = q.options || [];
+        cor = q.correct || [];
+        html += '<ul class="rq-opts">';
+        for (j = 0; j < opts.length; j++) {
+          html += '<li class="' + (cor.indexOf(j) !== -1 ? 'is-correct' : '') + '">' +
+            escapeHtml(opts[j]) +
+            (cor.indexOf(j) !== -1 ? ' ✓' : '') +
+            '</li>';
+        }
+        html += '</ul>';
+      } else if (k === 'open') {
+        html += '<p class="rq-correct"><strong>Model answer</strong></p>';
+        html += '<p class="rq-primary" style="font-weight:normal">' + escapeHtml(q.modelAnswer || '—') + '</p>';
+      } else if (k === 'cloud') {
+        if (q.modelAnswer) {
+          html += '<p class="rq-correct"><strong>Notes</strong></p>';
+          html += '<p>' + escapeHtml(q.modelAnswer) + '</p>';
+        }
+        map = answersForQuestion(i);
+        groups = QuizNormalize.groupCloudWords(map) || [];
+        if (groups.length) {
+          html += '<p class="rq-cloud-list" aria-label="Submitted words">' +
+            formatCloudWordList(groups.slice(0, 80)) + '</p>';
+        } else {
+          html += '<p class="hint">Word cloud — see the screen for submitted words.</p>';
+        }
+      }
+      if (q.revealNote) {
+        html += '<p class="rq-note">' + escapeHtml(q.revealNote) + '</p>';
+      }
+      html += '</article>';
+    }
+    list.innerHTML = html || '<p class="hint">No questions to review.</p>';
+  }
+
+  function showPlayerReview() {
+    hide($('joinPanel'));
+    hide($('waitPanel'));
+    hide($('answerPanel'));
+    hide($('endedPanel'));
+    show($('reviewPanel'));
+    renderPlayerReview();
+    refreshMyScore();
+    try { $('reviewPanel').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+  }
+
+  function hidePlayerReview() {
+    if ($('reviewPanel')) hide($('reviewPanel'));
+  }
+
   function showWaiting(msg) {
     hide($('joinPanel'));
     hide($('answerPanel'));
     hide($('endedPanel'));
+    hidePlayerReview();
     show($('waitPanel'));
     $('waitText').textContent = msg || 'Waiting for the Sphinx to pose a question…';
     $('waitRoom').textContent = roomCode || '';
@@ -317,10 +479,16 @@
       hide($('joinPanel'));
       hide($('waitPanel'));
       hide($('answerPanel'));
+      hidePlayerReview();
       show($('endedPanel'));
       refreshMyScore();
       return;
     }
+    if (meta.review) {
+      showPlayerReview();
+      return;
+    }
+    hidePlayerReview();
     var qIndex = Number(meta.currentQ) || 0;
     var q = questionAt(qIndex);
     if (!q) {
@@ -344,6 +512,7 @@
       var meta = snap.val();
       if (!meta) {
         hide($('joinPanel')); hide($('waitPanel')); hide($('answerPanel'));
+        hidePlayerReview();
         show($('endedPanel'));
         return;
       }
@@ -363,6 +532,10 @@
     answersUnsub = fb.onValue(fb.ref('rooms/' + code + '/answers'), function (snap) {
       answersTree = snap.val() || {};
       refreshMyScore();
+      if (currentMeta && currentMeta.review && $('reviewPanel') &&
+          !$('reviewPanel').classList.contains('hidden')) {
+        renderPlayerReview();
+      }
     });
   }
 

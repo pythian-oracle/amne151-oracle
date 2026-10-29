@@ -131,7 +131,7 @@
     html = '';
     html += '<div class="hm-gate-actions">';
     html += '<button type="button" class="btn big choice" id="hmGateChooseMc">Take it easy</button>';
-    html += '<button type="button" class="btn big choice" id="hmGateChooseType">LFG</button>';
+    html += '<button type="button" class="btn big choice" id="hmGateChooseType">Hard Mode</button>';
     html += '</div>';
     box.innerHTML = html;
     show(box);

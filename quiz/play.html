@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Sphinx — join · AMNE 151</title>
-  <link rel="stylesheet" href="quiz.css?v=202610290100">
+  <link rel="stylesheet" href="quiz.css?v=202610290200">
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 </head>
 <body>
@@ -55,11 +55,18 @@
       <p class="scroll speech">This room has closed.</p>
       <div class="my-score" id="endScore"></div>
     </section>
+
+    <section id="reviewPanel" class="panel review-panel play-review hidden" aria-live="polite">
+      <div class="my-score" id="reviewScore">Score 0</div>
+      <h2 class="play-review-title">Answer review</h2>
+      <p class="hint">Correct answers for this session. Scroll for every question.</p>
+      <div id="reviewList" class="review-list" aria-label="Answer review"></div>
+    </section>
   </main>
   <footer class="foot">AMNE 151 · Sphinx · no accounts</footer>
-  <script src="normalize.js?v=202610290100"></script>
-  <script src="firebase-config.js?v=202610290100"></script>
-  <script src="firebase-app.js?v=202610290100"></script>
-  <script src="play.js?v=202610290100"></script>
+  <script src="normalize.js?v=202610290200"></script>
+  <script src="firebase-config.js?v=202610290200"></script>
+  <script src="firebase-app.js?v=202610290200"></script>
+  <script src="play.js?v=202610290200"></script>
 </body>
 </html>
