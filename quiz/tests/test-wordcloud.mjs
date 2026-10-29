@@ -60,7 +60,7 @@ try {
   }
   const prompt = await host.textContent('#prompt');
   console.log('PROMPT', prompt.slice(0, 60));
-  if (!/Achilles/i.test(prompt)) throw new Error('not on cloud Q: ' + prompt);
+  if (!/In your view/i.test(prompt)) throw new Error('not on cloud Q: ' + prompt);
 
   // Seed answers via Firebase from page
   const seeded = await host.evaluate(async ({ roomCode, samples }) => {
