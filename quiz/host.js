@@ -404,7 +404,12 @@
       cloud.innerHTML = '';
     }
 
-    if (k === 'mc' && currentMeta && currentMeta.hardMode && !revealed) {
+    if (k !== 'mc' && k !== 'cloud' && !revealed) {
+      // Write-in answers (short / open) stay hidden until reveal.
+      show(bars);
+      bars.innerHTML = '<p class="hint hard-hidden">Students are typing their answers. ' +
+        'Answers stay hidden until you reveal.</p>';
+    } else if (k === 'mc' && currentMeta && currentMeta.hardMode && !revealed) {
       show(bars);
       bars.innerHTML = '<p class="hint hard-hidden">Hard Mode: students are typing their answers. ' +
         'Choices stay hidden until you reveal.</p>';
