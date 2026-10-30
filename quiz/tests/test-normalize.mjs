@@ -108,17 +108,14 @@ const mw = N.gradeHardModeMc('Mask of Agamemnon Hector', mwQ);
 assert(mw.exact, 'multi-word alias kept intact when splitting on spaces: ' + JSON.stringify(mw.mapped));
 console.log('hard-mode parse entries: OK');
 
-// Argives MC — long correct list: partial credit + multi-word alias
+// Not-on-Achilles'-side MC (Trojans + allies): partial credit + aliases
 const argQ = quiz.questions.find((q) => q.id === 'i8');
-assert.ok(argQ && argQ.multi && (argQ.correct || []).length === 8);
-const argPartial = N.gradeHardModeMc('Achilles, Hector, Nestor', argQ);
-assert.ok(argPartial.partial && !argPartial.exact, 'partial when some correct + one Trojan');
+assert.ok(argQ && argQ.multi && (argQ.correct || []).length === 5);
+const argPartial = N.gradeHardModeMc('Hector, Paris, Achilles', argQ);
+assert.ok(argPartial.partial && !argPartial.exact, 'partial when some correct + one Achaean');
 assert.strictEqual(argPartial.hit, 2);
-const argExact = N.gradeHardModeMc(
-  'Achilles Nestor Agamemnon Odysseus Diomedes Menelaos Ajax the Great Patroklos',
-  argQ
-);
-assert(argExact.exact, 'exact with aliases + multi-word Ajax the Great: ' + JSON.stringify(argExact.mapped));
-const argScore = N.scoreForAnswer(argQ, { raw: 'Achilles, Nestor', hardMode: true, at: 1000 }, 1000);
+const argExact = N.gradeHardModeMc('Hektor Alexandros Aineias Priamos Sarpedon', argQ);
+assert(argExact.exact, 'exact with aliases: ' + JSON.stringify(argExact.mapped));
+const argScore = N.scoreForAnswer(argQ, { raw: 'Hector, Priam', hardMode: true, at: 1000 }, 1000);
 assert.ok(argScore > 0 && argScore < 1500, 'partial hard-mode score between 0 and full: ' + argScore);
 console.log('argives hard-mode partial/exact: OK');

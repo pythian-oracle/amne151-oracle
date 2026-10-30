@@ -58,7 +58,7 @@ async function finishAfterGateNormal(page) {
   // Atreus, Troy, Argives as normal MC
   await answerMc(page, [0, 1, 3, 5, 6]); // Atreus
   await answerMc(page, [0, 1, 3, 5, 6]); // Troy
-  await answerMc(page, [0, 2, 4, 6, 8, 10, 11, 12]); // Argives
+  await answerMc(page, [1, 3, 5, 7, 9]); // not on Achilles' side
   await page.waitForSelector('#cloudBox:visible');
   const inputs = page.locator('#cloudBox input');
   await inputs.nth(0).fill('wrath');
@@ -161,7 +161,7 @@ try {
     await page2.waitForSelector('#hardMcBox textarea.hard-entry:visible');
     await page2.fill(
       '#hardMcBox textarea.hard-entry',
-      'Achilles Nestor Agamemmnon Ulysses Diomede Menelaos Ajax the Great Patroklos'
+      'Hektor Alexandros Aineias Priamos Sarpedon'
     );
     await page2.click('#checkBtn');
     await page2.waitForSelector('#feedback:not(.hidden)');
