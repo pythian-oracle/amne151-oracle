@@ -45,6 +45,8 @@ async function answerThroughPreGate(page) {
   await checkAndNext(page);
   await page.fill('#answer', 'Cheiron');
   await checkAndNext(page);
+  await page.fill('#answer', 'Pelops');
+  await checkAndNext(page);
   await page.waitForSelector('#answerLong:visible');
   await page.fill('#answerLong', 'excavated Troy');
   await checkAndNext(page);

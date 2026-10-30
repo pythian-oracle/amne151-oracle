@@ -47,21 +47,21 @@ const score = N.scoreForAnswer(
 assert.strictEqual(score, 1500);
 
 const quiz = JSON.parse(fs.readFileSync(new URL('../quizzes/lecture-review-1.json', import.meta.url), 'utf8'));
-assert.strictEqual(quiz.questions.length, 11);
-assert.strictEqual(N.countableLength(quiz.questions), 10);
+assert.strictEqual(quiz.questions.length, 12);
+assert.strictEqual(N.countableLength(quiz.questions), 11);
 const kinds = quiz.questions.map((q) => N.questionKind(q));
 assert.ok(kinds.includes('mc') && kinds.includes('cloud') && kinds.includes('open') && kinds.includes('short'));
 assert.ok(kinds.includes('hardModeGate'));
 const gateIdx = kinds.indexOf('hardModeGate');
-assert.strictEqual(gateIdx, 5, 'gate after Judgement (before Earth-born)');
+assert.strictEqual(gateIdx, 6, 'gate after Judgement (before Earth-born)');
 assert.deepStrictEqual(
   quiz.questions.map((q) => q.id),
-  ['i0a', 'h1', 'h2', 'i4', 'i5', 'hm-gate', 'h3', 'i0b', 'i7', 'i8', 'i0c']
+  ['i0a', 'h1', 'h2', 'h4', 'i4', 'i5', 'hm-gate', 'h3', 'i0b', 'i7', 'i8', 'i0c']
 );
-assert.strictEqual(N.displayQuestionNumber(quiz.questions, 4), 5);
-assert.strictEqual(N.displayQuestionNumber(quiz.questions, 5), null);
-assert.strictEqual(N.displayQuestionNumber(quiz.questions, 6), 6);
+assert.strictEqual(N.displayQuestionNumber(quiz.questions, 5), 6);
+assert.strictEqual(N.displayQuestionNumber(quiz.questions, 6), null);
 assert.strictEqual(N.displayQuestionNumber(quiz.questions, 7), 7);
+assert.strictEqual(N.displayQuestionNumber(quiz.questions, 8), 8);
 const h3 = quiz.questions.find((q) => q.id === 'h3');
 assert.ok(h3 && h3.type === 'mc' && h3.multi, 'h3 must be multi MC');
 assert.deepStrictEqual(h3.correct, [0, 2, 4]);

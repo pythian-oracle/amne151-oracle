@@ -51,6 +51,16 @@
       "revealNote": null
     },
     {
+      "id": "h4",
+      "section": "Heroes",
+      "type": "short",
+      "prompt": "Who had an ivory shoulder?",
+      "accepted": [
+        "Pelops"
+      ],
+      "revealNote": null
+    },
+    {
       "id": "i4",
       "section": "Iliad",
       "type": "open",
