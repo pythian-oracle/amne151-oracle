@@ -276,7 +276,7 @@
           renderMc(q);
         }
       } else if (k === 'cloud') {
-        $('typeHint').textContent = 'Up to ' + (q.max || 3) + ' short words.';
+        $('typeHint').textContent = 'Up to ' + (q.max || 3) + ' words or phrases.';
         renderCloud(q);
       } else {
         $('typeHint').textContent = 'Short answer — spelling variants OK.';
@@ -619,7 +619,7 @@
     }
     if (k === 'cloud') {
       words = cloudWords();
-      if (!words.length) return { error: 'Enter at least one word.' };
+      if (!words.length) return { error: 'Enter at least one word or phrase.' };
       if (words.length > (q.max || 3)) return { error: 'Too many words.' };
       wordsObj = {};
       for (i = 0; i < words.length; i++) {
