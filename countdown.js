@@ -1,8 +1,8 @@
 /* Deadline countdowns (computed from UTC instants, so correct in any timezone). */
 (function () {
   var D = [
-    // Fri 20 Nov 2026, 10 p.m. America/Vancouver (PST UTC-8 after DST ends 1 Nov) = 06:00 UTC 21 Nov
-    { id: 'cdFinalProject', label: 'Final Project (the creative work)', at: Date.UTC(2026, 10, 21, 6, 0) }
+    // Sun 13 Dec 2026, 7 p.m. America/Vancouver (PST UTC-8) = 03:00 UTC 14 Dec
+    { id: 'cdFinalExam', label: 'Final Exam (Buchanan A 104)', at: Date.UTC(2026, 11, 14, 3, 0), verb: 'in', done: 'has started' }
   ];
   function pl(n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); }
   function fmt(ms) {
@@ -15,7 +15,7 @@
     D.forEach(function (x) {
       var e = document.getElementById(x.id); if (!e) return;
       var left = x.at - now;
-      e.textContent = left > 0 ? x.label + ' due in ' + fmt(left) : x.label + ' deadline has passed';
+      e.textContent = left > 0 ? x.label + ' ' + (x.verb || 'due in') + ' ' + fmt(left) : x.label + ' ' + (x.done || 'deadline has passed');
       e.classList.toggle('passed', left <= 0);
     });
   }
