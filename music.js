@@ -236,6 +236,7 @@
       }
     };
   })();
+  window.Music = Music;
 
 
   var musicBtn = $('musicToggle');
